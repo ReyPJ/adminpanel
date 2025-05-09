@@ -11,18 +11,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
-import { ActivePeriod } from "@/app/components/activePeriod";
-import { EmployeeRanking } from "@/app/components/employeeRanking";
-import { ToggleTheme } from "./components/toggleTheme";
-import { PeriodMetrics } from "@/app/components/periodMetrics";
+import { ToggleTheme } from "../components/toggleTheme";
+import { EmployeeList } from "../components/employeeList";
 
-export default function Home() {
+export default function EmployeePage() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
   let pathSoFar = "";
 
   return (
-    <>
+    <div>
       <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator
@@ -58,15 +56,16 @@ export default function Home() {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
+
       <div className="flex flex-1 flex-col gap-4 p-4">
         <div className="grid auto-rows-min gap-4 md:grid-cols-2">
-          <ActivePeriod />
-          <EmployeeRanking />
+          <div className="aspect-video rounded-xl bg-muted/50" />
+          <div className="aspect-video rounded-xl bg-muted/50" />
         </div>
         <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-          <PeriodMetrics />
+          <EmployeeList />
         </div>
       </div>
-    </>
+    </div>
   );
 }
