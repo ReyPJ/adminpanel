@@ -5,6 +5,11 @@ import {
   EmployeeInterface,
   ActiveEmployeeInterface,
 } from "../interfaces/employeInterfa";
+import {
+  AuthPostResponse,
+  AuthPostRequest,
+} from "../interfaces/authInterfaces";
+import Cookies from "js-cookie";
 
 export const api = axios.create({
   baseURL: "http://localhost:8000/v1/",
@@ -13,18 +18,34 @@ export const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-// Commented for now for development purposes
-//   (config) => {
-//     const token = localStorage.getItem("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export const authenticateService = async (
+  request: AuthPostRequest
+): Promise<AuthPostResponse> => {
+  try {
+    const response = await api.post<AuthPostResponse>("auth/", request);
+    Cookies.set("token", response.data.access, {
+      expires: 1,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error authenticating:", error);
+    throw error;
+  }
+};
 
 export const getActivePeriod = async (): Promise<getPeriodResponse> => {
   try {
