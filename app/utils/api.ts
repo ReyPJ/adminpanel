@@ -170,7 +170,7 @@ export const getQRCode = async (employeeId: number): Promise<void> => {
 
 export const getTimers = async (): Promise<TimerInterface[]> => {
   try {
-    const response = await api.get<TimerInterface[]>("/timer/");
+    const response = await api.get<TimerInterface[]>("timer/");
     return response.data;
   } catch (error) {
     console.error("Error fetching timers:", error);
@@ -180,7 +180,7 @@ export const getTimers = async (): Promise<TimerInterface[]> => {
 
 export const createTimer = async (timerData: PostTimerInterface) => {
   try {
-    const response = await api.post<TimerInterface>("/timer/", timerData);
+    const response = await api.post<TimerInterface>("timer/", timerData);
     return response.data;
   } catch (error) {
     console.error("Error creating timer:", error);
@@ -198,6 +198,44 @@ export const getTimersByEmployeeId = async (
     return response.data;
   } catch (error) {
     console.error("Error fetching timers by employee id:", error);
+    throw error;
+  }
+};
+
+export const getTimerByTimerId = async (
+  timerId: number
+): Promise<TimerInterface> => {
+  try {
+    const response = await api.get<TimerInterface>(`timer/${timerId}/`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching timer by timer id:", error);
+    throw error;
+  }
+};
+
+export const updateTimer = async (
+  timerId: number,
+  timerData: TimerInterface
+) => {
+  try {
+    const response = await api.put<TimerInterface>(
+      `timer/${timerId}/`,
+      timerData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating timer:", error);
+    throw error;
+  }
+};
+
+export const deleteTimer = async (timerId: number) => {
+  try {
+    const response = await api.delete(`timer/${timerId}/`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting timer:", error);
     throw error;
   }
 };
