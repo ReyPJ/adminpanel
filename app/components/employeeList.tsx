@@ -71,6 +71,8 @@ export function EmployeeList() {
       try {
         setLoading(true);
         const response = await getAllEmployees();
+        // set employees List on localStorage so we can use it on any component without fetching again
+        localStorage.setItem("employees_list", JSON.stringify(response));
         setEmployeesList(response);
         setLoading(false);
       } catch (error) {
