@@ -4,8 +4,9 @@ import {
   BreadcrumbItem,
   BreadcrumbSeparator,
   BreadcrumbPage,
+  Breadcrumb,
+  BreadcrumbList,
 } from "@/components/ui/breadcrumb";
-import { Breadcrumb, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
@@ -125,7 +126,6 @@ const AddTimerPage = () => {
       return;
     }
 
-    console.log(formData);
     try {
       setLoading(true);
 

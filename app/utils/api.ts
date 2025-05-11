@@ -19,6 +19,11 @@ import {
 } from "../interfaces/timersInterfaces";
 import { salaryRecordInterface } from "../interfaces/salaryRecord";
 import Cookies from "js-cookie";
+import {
+  nightHoursCountInterface,
+  requestCalculateSalaryInterface,
+  responseCalculateSalaryInterface,
+} from "../interfaces/salaryInterfaces";
 
 export const api = axios.create({
   baseURL: "http://localhost:8000/v1/",
@@ -56,12 +61,95 @@ export const authenticateService = async (
   }
 };
 
+// If we pass is_active=true as a query parameter, we get the active period only
+//if we pass period_id as a query parameter, we get the period with the given id
+// Otherwise, we get all periods
 export const getActivePeriod = async (): Promise<getPeriodResponse> => {
   try {
-    const response = await api.get<getPeriodResponse[]>("salary/period/");
+    const response = await api.get<getPeriodResponse[]>("salary/period/", {
+      params: {
+        is_active: true,
+      },
+    });
     return response.data[0];
   } catch (error) {
     console.error("Error fetching active period:", error);
+    throw error;
+  }
+};
+
+export const getPeriodById = async (
+  periodId: number
+): Promise<getPeriodResponse> => {
+  try {
+    const response = await api.get<getPeriodResponse[]>("salary/period/", {
+      params: {
+        period_id: periodId,
+      },
+    });
+    return response.data[0];
+  } catch (error) {
+    console.error("Error fetching period by id:", error);
+    throw error;
+  }
+};
+
+export const allPeriods = async (): Promise<getPeriodResponse[]> => {
+  try {
+    const response = await api.get<getPeriodResponse[]>("salary/period/");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all periods:", error);
+    throw error;
+  }
+};
+
+export const postPeriod = async (periodData: postPeriodRequest) => {
+  try {
+    const response = await api.post("salary/period/", periodData);
+    return response.data;
+  } catch (error) {
+    console.error("Error posting period:", error);
+    throw error;
+  }
+};
+
+export const closeCurrentPeriod = async (action: "close_current") => {
+  try {
+    const response = await api.post("salary/period/", {
+      action,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error closing period:", error);
+    throw error;
+  }
+};
+
+export const getNightHoursCount = async (
+  periodId: number
+): Promise<nightHoursCountInterface[]> => {
+  try {
+    const response = await api.get("salary/night-hours-count/", {
+      params: {
+        period_id: periodId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching night hours count:", error);
+    throw error;
+  }
+};
+
+export const calculateSalary = async (
+  request: requestCalculateSalaryInterface
+): Promise<responseCalculateSalaryInterface> => {
+  try {
+    const response = await api.post("salary/calculate/", request);
+    return response.data;
+  } catch (error) {
+    console.error("Error calculating salary:", error);
     throw error;
   }
 };
@@ -76,16 +164,6 @@ export const getSalaryRecordsFromPeriod = async (
     return response.data;
   } catch (error) {
     console.error("Error fetching salary records from period:", error);
-    throw error;
-  }
-};
-
-export const createPeriod = async (periodData: postPeriodRequest) => {
-  try {
-    const response = await api.post("salary/period/", periodData);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating period:", error);
     throw error;
   }
 };

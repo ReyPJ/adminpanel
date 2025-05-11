@@ -43,17 +43,16 @@ const data = {
         },
         {
           title: "Agregar Horario",
-          url: "timers/add",
+          url: "/timers/add",
         },
       ],
     },
     {
       title: "Pagos",
-      url: "#",
       items: [
         {
           title: "Periodos de Pago",
-          url: "#",
+          url: "/payments/periods",
         },
         {
           title: "Planilla y Salarios",
