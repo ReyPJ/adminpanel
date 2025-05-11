@@ -36,15 +36,14 @@ const data = {
     },
     {
       title: "Horarios",
-      url: "#",
       items: [
         {
           title: "Listado de Horarios",
-          url: "#",
+          url: "/timers",
         },
         {
-          title: "Crear Horario",
-          url: "#",
+          title: "Agregar Horario",
+          url: "timers/add",
         },
       ],
     },

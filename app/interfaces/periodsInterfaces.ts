@@ -5,3 +5,10 @@ export interface getPeriodResponse {
   is_closed: boolean;
   description: string;
 }
+
+export interface postPeriodRequest {
+  start_date: string;
+  end_date: string;
+  is_closed: boolean;
+  description: string;
+}

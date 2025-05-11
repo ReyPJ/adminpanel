@@ -1,5 +1,8 @@
 import axios from "axios";
-import { getPeriodResponse } from "@/app/interfaces/periodsInterfaces";
+import {
+  getPeriodResponse,
+  postPeriodRequest,
+} from "@/app/interfaces/periodsInterfaces";
 import { AllEmployeeStats } from "@/app/interfaces/Stats";
 import {
   EmployeeInterface,
@@ -12,7 +15,9 @@ import {
 import {
   PostTimerInterface,
   TimerInterface,
+  getAllTimersResponse,
 } from "../interfaces/timersInterfaces";
+import { salaryRecordInterface } from "../interfaces/salaryRecord";
 import Cookies from "js-cookie";
 
 export const api = axios.create({
@@ -25,7 +30,7 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -57,6 +62,30 @@ export const getActivePeriod = async (): Promise<getPeriodResponse> => {
     return response.data[0];
   } catch (error) {
     console.error("Error fetching active period:", error);
+    throw error;
+  }
+};
+
+export const getSalaryRecordsFromPeriod = async (
+  periodId: number
+): Promise<salaryRecordInterface[]> => {
+  try {
+    const response = await api.get<salaryRecordInterface[]>(
+      `salary/records/?period_id=${periodId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching salary records from period:", error);
+    throw error;
+  }
+};
+
+export const createPeriod = async (periodData: postPeriodRequest) => {
+  try {
+    const response = await api.post("salary/period/", periodData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating period:", error);
     throw error;
   }
 };
@@ -168,9 +197,9 @@ export const getQRCode = async (employeeId: number): Promise<void> => {
   }
 };
 
-export const getTimers = async (): Promise<TimerInterface[]> => {
+export const getTimers = async (): Promise<getAllTimersResponse[]> => {
   try {
-    const response = await api.get<TimerInterface[]>("timer/");
+    const response = await api.get<getAllTimersResponse[]>("timer/");
     return response.data;
   } catch (error) {
     console.error("Error fetching timers:", error);

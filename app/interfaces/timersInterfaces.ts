@@ -10,6 +10,11 @@ export interface TimerInterface {
   is_night_shift?: boolean;
 }
 
+export interface getAllTimersResponse {
+  employee: number;
+  timers: TimerInterface[];
+}
+
 // day: 0 is sunday, 1 is monday, 2 is tuesday, 3 is wednesday, 4 is thursday, 5 is friday, 6 is saturday
 export interface PostTimerInterface {
   employee: number;
