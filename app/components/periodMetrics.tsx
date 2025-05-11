@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { getEmployeeStats } from "@/app/utils/api";
+import { getActivePeriod, getEmployeeStats } from "@/app/utils/api";
 import { AllEmployeeStats } from "@/app/interfaces/Stats";
 import {
   Loader2,
@@ -9,6 +9,7 @@ import {
   Award,
   TrendingUp,
   BarChart,
+  AlertTriangle,
 } from "lucide-react";
 
 import {
@@ -23,6 +24,7 @@ import {
 export function PeriodMetrics() {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [stats, setStats] = React.useState<AllEmployeeStats | null>(null);
+  const [noPeriodActive, setNoPeriodActive] = React.useState<boolean>(false);
   const [metrics, setMetrics] = React.useState({
     totalHours: 0,
     averageHours: 0,
@@ -34,8 +36,19 @@ export function PeriodMetrics() {
   });
 
   React.useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
+        // Primero verificamos si hay un periodo activo
+        const activePeriod = await getActivePeriod();
+
+        // Si no hay un periodo activo (objeto vacío o sin ID)
+        if (!activePeriod || !activePeriod.id) {
+          setNoPeriodActive(true);
+          setLoading(false);
+          return;
+        }
+
+        // Si hay un periodo activo, obtenemos las estadísticas
         const data = await getEmployeeStats();
         setStats(data);
 
@@ -95,7 +108,7 @@ export function PeriodMetrics() {
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   return (
@@ -108,6 +121,8 @@ export function PeriodMetrics() {
         <CardDescription>
           {stats?.pay_period
             ? `Período: ${stats.pay_period.description}`
+            : noPeriodActive
+            ? "No hay periodo activo"
             : "Cargando..."}
         </CardDescription>
       </CardHeader>
@@ -117,6 +132,15 @@ export function PeriodMetrics() {
             <Loader2 className="animate-spin text-blue-500" size={36} />
             <span className="text-lg text-muted-foreground">
               Cargando métricas...
+            </span>
+          </div>
+        ) : noPeriodActive ? (
+          <div className="flex flex-col items-center justify-center h-56 gap-2 text-amber-600">
+            <AlertTriangle size={36} />
+            <span className="text-lg text-center">
+              No hay un periodo activo.
+              <br />
+              Crea un nuevo periodo para ver las métricas.
             </span>
           </div>
         ) : (
@@ -185,11 +209,11 @@ export function PeriodMetrics() {
         )}
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none text-muted-foreground">
-          {stats?.stats.length
-            ? `Basado en datos de ${stats.stats.length} empleados`
-            : ""}
-        </div>
+        {!noPeriodActive && stats && stats.stats && stats.stats.length > 0 && (
+          <div className="flex gap-2 font-medium leading-none text-muted-foreground">
+            {`Basado en datos de ${stats.stats.length} empleados`}
+          </div>
+        )}
       </CardFooter>
     </Card>
   );

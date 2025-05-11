@@ -56,15 +56,15 @@ const data = {
         },
         {
           title: "Planilla y Salarios",
-          url: "#",
+          url: "/payments/salaries",
         },
         {
           title: "Registros",
-          url: "#",
+          url: "/payments/records",
         },
         {
           title: "Historial de Asistencias",
-          url: "#",
+          url: "/attendance/history",
         },
       ],
     },

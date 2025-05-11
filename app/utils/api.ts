@@ -24,6 +24,7 @@ import {
   requestCalculateSalaryInterface,
   responseCalculateSalaryInterface,
 } from "../interfaces/salaryInterfaces";
+import { attendanceInterface } from "../interfaces/attendanceDetailsInterface";
 
 export const api = axios.create({
   baseURL: "http://localhost:8000/v1/",
@@ -61,18 +62,55 @@ export const authenticateService = async (
   }
 };
 
+export const getAttendanceDetails = async (
+  employeeId: number,
+  periodId: number
+): Promise<attendanceInterface[]> => {
+  try {
+    const response = await api.get<attendanceInterface[]>(
+      "salary/attendance-details/",
+      {
+        params: {
+          employee_id: employeeId,
+          period_id: periodId,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching attendance details:", error);
+    throw error;
+  }
+};
+
+// If we pass is_active=true as a query parameter, we get the active period only
 // If we pass is_active=true as a query parameter, we get the active period only
 //if we pass period_id as a query parameter, we get the period with the given id
 // Otherwise, we get all periods
 export const getActivePeriod = async (): Promise<getPeriodResponse> => {
   try {
-    const response = await api.get<getPeriodResponse[]>("salary/period/", {
+    const response = await api.get<getPeriodResponse>("salary/period/", {
       params: {
         is_active: true,
       },
     });
-    return response.data[0];
-  } catch (error) {
+    return response.data;
+  } catch (error: unknown) {
+    // Si es un 404, significa que no hay periodo activo, lo cual es un estado válido
+    // y no un error técnico, por lo que no lo registramos en la consola
+    if (
+      error &&
+      typeof error === "object" &&
+      "response" in error &&
+      error.response &&
+      typeof error.response === "object" &&
+      "status" in error.response &&
+      error.response.status === 404
+    ) {
+      return {} as getPeriodResponse; // Devolvemos un objeto vacío que cumple con la interfaz
+    }
+
+    // Para cualquier otro tipo de error, sí lo registramos y lo lanzamos
     console.error("Error fetching active period:", error);
     throw error;
   }
@@ -80,14 +118,14 @@ export const getActivePeriod = async (): Promise<getPeriodResponse> => {
 
 export const getPeriodById = async (
   periodId: number
-): Promise<getPeriodResponse> => {
+): Promise<getPeriodResponse[]> => {
   try {
     const response = await api.get<getPeriodResponse[]>("salary/period/", {
       params: {
         period_id: periodId,
       },
     });
-    return response.data[0];
+    return response.data;
   } catch (error) {
     console.error("Error fetching period by id:", error);
     throw error;
@@ -130,7 +168,7 @@ export const getNightHoursCount = async (
   periodId: number
 ): Promise<nightHoursCountInterface[]> => {
   try {
-    const response = await api.get("salary/night-hours-count/", {
+    const response = await api.get("salary/night-hours/", {
       params: {
         period_id: periodId,
       },

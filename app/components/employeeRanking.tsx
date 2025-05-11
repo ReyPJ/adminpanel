@@ -1,7 +1,7 @@
 "use client";
-import { getEmployeeStats } from "@/app/utils/api";
+import { getActivePeriod, getEmployeeStats } from "@/app/utils/api";
 import { AllEmployeeStats } from "@/app/interfaces/Stats";
-import { TrendingUp, Loader2 } from "lucide-react";
+import { TrendingUp, Loader2, AlertTriangle } from "lucide-react";
 import * as React from "react";
 import {
   Bar,
@@ -46,10 +46,22 @@ export function EmployeeRanking() {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [stats, setStats] = React.useState<AllEmployeeStats | null>(null);
   const [chartData, setChartData] = React.useState<EmployeeRankData[]>([]);
+  const [noPeriodActive, setNoPeriodActive] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
+        // Primero verificamos si hay un periodo activo
+        const activePeriod = await getActivePeriod();
+
+        // Si no hay un periodo activo (objeto vacío o sin ID)
+        if (!activePeriod || !activePeriod.id) {
+          setNoPeriodActive(true);
+          setLoading(false);
+          return;
+        }
+
+        // Si hay un periodo activo, obtenemos las estadísticas
         const data = await getEmployeeStats();
         setStats(data);
 
@@ -65,12 +77,13 @@ export function EmployeeRanking() {
         setChartData(transformedData);
         setLoading(false);
       } catch (error) {
+        // Si hay un error 400 o 404, puede que no haya periodo activo
         console.error("Error fetching employee stats:", error);
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   return (
@@ -80,6 +93,8 @@ export function EmployeeRanking() {
         <CardDescription>
           {stats?.pay_period
             ? `Periodo: ${stats.pay_period.description}`
+            : noPeriodActive
+            ? "No hay periodo activo"
             : "Cargando..."}
         </CardDescription>
       </CardHeader>
@@ -89,6 +104,15 @@ export function EmployeeRanking() {
             <Loader2 className="animate-spin text-blue-500" size={36} />
             <span className="text-lg text-muted-foreground">
               Cargando ranking de empleados...
+            </span>
+          </div>
+        ) : noPeriodActive ? (
+          <div className="flex flex-col items-center justify-center h-80 gap-2 text-amber-600">
+            <AlertTriangle size={36} />
+            <span className="text-lg text-center">
+              No hay un periodo activo.
+              <br />
+              Crea un nuevo periodo para ver las estadísticas.
             </span>
           </div>
         ) : (
@@ -146,11 +170,13 @@ export function EmployeeRanking() {
           {stats?.stats.length
             ? `${stats.stats.length} empleados en este período`
             : ""}
-          <TrendingUp className="h-4 w-4" />
+          {!noPeriodActive && <TrendingUp className="h-4 w-4" />}
         </div>
-        <div className="leading-none text-muted-foreground">
-          Mostrando horas totales trabajadas en el período actual
-        </div>
+        {!noPeriodActive && (
+          <div className="leading-none text-muted-foreground">
+            Mostrando horas totales trabajadas en el período actual
+          </div>
+        )}
       </CardFooter>
     </Card>
   );

@@ -11,19 +11,30 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { CheckCircle, Lock, Loader2, Info } from "lucide-react";
+import { CheckCircle, Lock, Loader2, Info, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function ActivePeriod(): React.ReactNode {
   const [activePeriod, setActivePeriod] =
     React.useState<getPeriodResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [noPeriodActive, setNoPeriodActive] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const fetchActivePeriod = async () => {
       try {
         const period = await getActivePeriod();
+
+        // Si no hay periodo activo (objeto vacío o sin ID)
+        if (!period || !period.id) {
+          setNoPeriodActive(true);
+          setIsLoading(false);
+          return;
+        }
+
         // convert start_date and end_date to date objects
-        const startDate = new Date(period.start_date);
+        const startDate = new Date(period.start_date ?? "");
         const endDate = new Date(period.end_date);
         // format start_date and end_date to dd - mm - yyyy
         const formattedStartDate = startDate.toLocaleDateString("es-CR");
@@ -35,6 +46,7 @@ export function ActivePeriod(): React.ReactNode {
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching active period:", error);
+        setNoPeriodActive(true);
         setIsLoading(false);
       }
     };
@@ -49,6 +61,34 @@ export function ActivePeriod(): React.ReactNode {
           Cargando periodo activo...
         </span>
       </div>
+    );
+  }
+
+  if (noPeriodActive) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <span>No hay periodo activo</span>
+            <AlertTriangle className="text-amber-600" size={22} />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex items-start gap-2 mt-2">
+            <Info className="text-amber-500 mt-1" size={20} />
+            <p className="text-base text-justify">
+              No hay ningún periodo de pago activo actualmente. Es necesario
+              crear uno para poder registrar entradas/salidas y visualizar
+              estadísticas.
+            </p>
+          </div>
+          <div className="flex justify-center mt-4">
+            <Button asChild variant="default" size="lg">
+              <Link href="/payments/periods">Crear periodo nuevo</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 

@@ -12,10 +12,105 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import { ToggleTheme } from "@/app/components/toggleTheme";
+import { PeriodoActivo } from "@/app/components/PeriodoActivo";
+import { ListaPeriodos } from "@/app/components/ListaPeriodos";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus, LogOut, AlertTriangle, Calendar } from "lucide-react";
+import { getActivePeriod, closeCurrentPeriod } from "@/app/utils/api";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+// Componente Alert personalizado
+const Alert = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { className?: string }
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={`relative w-full rounded-lg border p-4 ${className}`}
+    {...props}
+  />
+));
+Alert.displayName = "Alert";
+
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={`mb-1 font-medium leading-none tracking-tight ${className}`}
+    {...props}
+  />
+));
+AlertTitle.displayName = "AlertTitle";
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={`text-sm opacity-90 ${className}`} {...props} />
+));
+AlertDescription.displayName = "AlertDescription";
 
 const PeriodsPage: React.FC = () => {
   const segments = usePathname().split("/").filter(Boolean);
   let pathSoFar = "";
+  const [loading, setLoading] = React.useState(false);
+  const [activePeriod, setActivePeriod] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const checkActivePeriod = async () => {
+      try {
+        const data = await getActivePeriod();
+        setActivePeriod(!!data.id);
+      } catch (err: unknown) {
+        // Si el error es 404, simplemente significa que no hay periodo activo
+        // No es realmente un error para nuestra lógica de negocio
+        if (
+          err &&
+          typeof err === "object" &&
+          "response" in err &&
+          err.response &&
+          typeof err.response === "object" &&
+          "status" in err.response &&
+          err.response.status === 404
+        ) {
+          setActivePeriod(false);
+        } else {
+          console.error("Error al verificar periodo activo:", err);
+        }
+      }
+    };
+
+    checkActivePeriod();
+  }, []);
+
+  const handleClosePeriod = async () => {
+    try {
+      setLoading(true);
+      await closeCurrentPeriod("close_current");
+      toast.success("Periodo actual cerrado exitosamente");
+      // Recargar la página para actualizar la información
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al cerrar el periodo actual");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const translateSegment = (segment: string) => {
     const translations: Record<string, string> = {
@@ -65,6 +160,87 @@ const PeriodsPage: React.FC = () => {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
+
+      <main className="flex-1 p-6 md:p-8 space-y-6">
+        <h1 className="text-3xl font-bold">Gestión de Periodos de Pago</h1>
+
+        <div className="grid grid-cols-1 gap-6">
+          {/* Periodo Activo */}
+          <PeriodoActivo />
+
+          {/* Gestión de Periodos */}
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Gestión de Periodos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {activePeriod && (
+                <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 mt-0.5" />
+                  <div>
+                    <AlertTitle className="font-medium">Importante</AlertTitle>
+                    <AlertDescription className="text-sm">
+                      Debes cerrar el período actual para crear un nuevo período
+                    </AlertDescription>
+                  </div>
+                </Alert>
+              )}
+
+              <div className="flex justify-between items-center">
+                <Button
+                  disabled={activePeriod}
+                  className="flex items-center gap-2"
+                  variant="default"
+                >
+                  <Plus className="h-4 w-4" />
+                  Crear Nuevo Periodo
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                      disabled={!activePeriod}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Cerrar Periodo Actual
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción cerrará el período actual y no se podrá
+                        deshacer. Los registros de tiempo y pagos quedarán
+                        finalizados.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={loading}>
+                        Cancelar
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleClosePeriod}
+                        disabled={loading}
+                        className="bg-red-500 hover:bg-red-600"
+                      >
+                        {loading ? "Cerrando..." : "Cerrar Período"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Historial de Periodos */}
+          <ListaPeriodos />
+        </div>
+      </main>
     </div>
   );
 };
