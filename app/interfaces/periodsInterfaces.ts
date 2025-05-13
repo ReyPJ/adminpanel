@@ -9,6 +9,6 @@ export interface getPeriodResponse {
 export interface postPeriodRequest {
   start_date: string;
   end_date: string;
-  description: string;
+  description?: string;
   action: "create_new" | "close_current";
 }

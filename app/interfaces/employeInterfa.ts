@@ -7,13 +7,8 @@ export interface EmployeeInterface {
   first_name?: string;
   last_name?: string;
   is_admin?: boolean;
-  use_finger_print?: boolean;
-  use_face_id?: boolean;
-  fingerprint_hash?: string;
-  face_template?: string;
   phone?: string;
-  unique_pin: string;
-  qr_code?: string;
+  unique_pin?: string;
 }
 
 export interface ActiveEmployeeInterface {

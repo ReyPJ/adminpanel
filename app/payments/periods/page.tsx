@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, LogOut, AlertTriangle, Calendar } from "lucide-react";
 import { getActivePeriod, closeCurrentPeriod } from "@/app/utils/api";
+import { GestionPeriodos } from "@/app/components/GestionPeriodos";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -168,74 +169,8 @@ const PeriodsPage: React.FC = () => {
           {/* Periodo Activo */}
           <PeriodoActivo />
 
-          {/* Gestión de Periodos */}
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Gestión de Periodos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activePeriod && (
-                <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900 flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 mt-0.5" />
-                  <div>
-                    <AlertTitle className="font-medium">Importante</AlertTitle>
-                    <AlertDescription className="text-sm">
-                      Debes cerrar el período actual para crear un nuevo período
-                    </AlertDescription>
-                  </div>
-                </Alert>
-              )}
-
-              <div className="flex justify-between items-center">
-                <Button
-                  disabled={activePeriod}
-                  className="flex items-center gap-2"
-                  variant="default"
-                >
-                  <Plus className="h-4 w-4" />
-                  Crear Nuevo Periodo
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      className="flex items-center gap-2"
-                      disabled={!activePeriod}
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Cerrar Periodo Actual
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta acción cerrará el período actual y no se podrá
-                        deshacer. Los registros de tiempo y pagos quedarán
-                        finalizados.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel disabled={loading}>
-                        Cancelar
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleClosePeriod}
-                        disabled={loading}
-                        className="bg-red-500 hover:bg-red-600"
-                      >
-                        {loading ? "Cerrando..." : "Cerrar Período"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Gestion de Periodos */}
+          <GestionPeriodos />
 
           {/* Historial de Periodos */}
           <ListaPeriodos />

@@ -9,8 +9,10 @@ import {
   ActiveEmployeeInterface,
 } from "../interfaces/employeInterfa";
 import {
-  AuthPostResponse,
   AuthPostRequest,
+  AuthPostResponse,
+  NFCTokenResponse,
+  NFCTokenValidateResponse,
 } from "../interfaces/authInterfaces";
 import {
   PostTimerInterface,
@@ -89,11 +91,13 @@ export const getAttendanceDetails = async (
 // Otherwise, we get all periods
 export const getActivePeriod = async (): Promise<getPeriodResponse> => {
   try {
+    console.log("Llamando a getActivePeriod API");
     const response = await api.get<getPeriodResponse>("salary/period/", {
       params: {
         is_active: true,
       },
     });
+    console.log("Respuesta exitosa de getActivePeriod:", response.data);
     return response.data;
   } catch (error: unknown) {
     // Si es un 404, significa que no hay periodo activo, lo cual es un estado válido
@@ -107,10 +111,12 @@ export const getActivePeriod = async (): Promise<getPeriodResponse> => {
       "status" in error.response &&
       error.response.status === 404
     ) {
+      console.log("No hay periodo activo (404)");
       return {} as getPeriodResponse; // Devolvemos un objeto vacío que cumple con la interfaz
     }
 
     // Para cualquier otro tipo de error, sí lo registramos y lo lanzamos
+    console.error("Error al obtener periodo activo:", error);
     console.error("Error fetching active period:", error);
     throw error;
   }
@@ -276,39 +282,49 @@ export const getActiveEmployee = async (): Promise<
   }
 };
 
-export const getQRCode = async (employeeId: number): Promise<void> => {
+export const createNFCToken = async (
+  employeeId: number,
+  tagId: string
+): Promise<NFCTokenResponse> => {
   try {
-    const response = await api.post(
-      `employee/${employeeId}/make-qr-code/`,
-      null,
+    const response = await api.post<NFCTokenResponse>(`auth/nfc/create/`, {
+      employee_id: employeeId,
+      tag_id: tagId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating NFC token:", error);
+    throw error;
+  }
+};
+
+export const revokeNFCToken = async (
+  tokenId: number
+): Promise<{ message: string }> => {
+  try {
+    const response = await api.post<{ message: string }>(
+      `auth/nfc/revoke/${tokenId}/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error revoking NFC token:", error);
+    throw error;
+  }
+};
+
+export const validateNFCToken = async (
+  token: string
+): Promise<NFCTokenValidateResponse> => {
+  try {
+    const response = await api.post<NFCTokenValidateResponse>(
+      `auth/nfc/validate/`,
       {
-        responseType: "blob",
+        token: token,
       }
     );
-    const disposition = response.headers["content-disposition"];
-    const findFullName = JSON.parse(
-      localStorage.getItem("employees_list") || "[]"
-    ).find((employee: EmployeeInterface) => employee.id === employeeId);
-    let filename = `${findFullName.first_name}_${findFullName.last_name}_qr.png`;
-    if (disposition && disposition.indexOf("filename=") !== -1) {
-      const match = disposition.match(/filename="(.+)"/);
-      if (match && match[1]) {
-        filename = match[1];
-      }
-    }
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url);
-      link.parentNode?.removeChild(link);
-    }, 100);
-    window.URL.revokeObjectURL(url);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching QR code:", error);
+    console.error("Error validating NFC token:", error);
     throw error;
   }
 };

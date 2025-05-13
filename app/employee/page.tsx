@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation";
 import { ToggleTheme } from "../components/toggleTheme";
 import { EmployeeList } from "../components/employeeList";
 import { ActiveEmployees } from "../components/activeEmployees";
-import { GetQRComponent } from "../components/getQrComponent";
+import { NFCTokenComponent } from "../components/NFCTokenComponent";
 
 // Diccionario de traducción para los segmentos de la ruta
 const breadcrumbTranslations: Record<string, string> = {
@@ -75,7 +75,7 @@ export default function EmployeePage() {
       <div className="flex flex-1 flex-col gap-4 p-4">
         <div className="grid auto-rows-min gap-4 md:grid-cols-2">
           <ActiveEmployees />
-          <GetQRComponent />
+          <NFCTokenComponent />
         </div>
         <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min">
           <EmployeeList />
