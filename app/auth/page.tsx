@@ -36,7 +36,7 @@ export default function AuthPage() {
           value={uniquePin}
           onChange={(e) => setUniquePin(e.target.value)}
           placeholder="Ingrese su PIN único"
-          className="p-2 border border-gray-300 rounded-md text-center"
+          className="p-2 border border-gray-300 rounded-md text-center text-black placeholder-gray-500"
         />
         {error && <p className="text-red-500 text-center">{error}</p>}
         <button

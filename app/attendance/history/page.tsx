@@ -68,7 +68,7 @@ const AttendanceHistoryPage: React.FC = () => {
   const [employees, setEmployees] = React.useState<EmployeeInterface[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [selectedEmployee, setSelectedEmployee] = React.useState<number | null>(
-    null
+    null,
   );
 
   // Cargar la lista de empleados desde localStorage al inicio
@@ -78,7 +78,7 @@ const AttendanceHistoryPage: React.FC = () => {
       if (storedEmployees) {
         // excludo user with id 1
         const filteredEmployees = JSON.parse(storedEmployees).filter(
-          (employee: EmployeeInterface) => employee.id !== 1
+          (employee: EmployeeInterface) => employee.id !== 1,
         );
         setEmployees(filteredEmployees);
       }
@@ -326,132 +326,200 @@ const AttendanceHistoryPage: React.FC = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className="cursor-pointer"
-                                >
-                                  {selectedEmployee === stat.id
-                                    ? "Ocultar Asistencia"
-                                    : "Ver Asistencia"}
-                                </Badge>
+                                {selectedEmployee === stat.id ? (
+                                  <div className="flex gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className="cursor-pointer bg-red-50 text-red-700 hover:bg-red-100"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEmployeeClick(stat.id);
+                                      }}
+                                    >
+                                      ← Volver al Resumen
+                                    </Badge>
+                                  </div>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="cursor-pointer bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEmployeeClick(stat.id);
+                                    }}
+                                  >
+                                    Ver Asistencia →
+                                  </Badge>
+                                )}
                               </TableCell>
                             </TableRow>
 
                             {/* Detalle de asistencia por día */}
-                            {selectedEmployee === stat.id &&
-                              attendanceData.length > 0 && (
-                                <TableRow className="bg-muted/20">
-                                  <TableCell colSpan={2} className="p-0">
-                                    <div className="p-4">
-                                      <h4 className="text-sm font-medium mb-3">
-                                        Detalle de asistencia diaria
+                            {selectedEmployee === stat.id && (
+                              <TableRow className="bg-muted/20">
+                                <TableCell colSpan={2} className="p-0">
+                                  <div className="p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <h4 className="text-sm font-medium">
+                                        {attendanceData.length > 0
+                                          ? `Detalle de asistencia diaria - ${stat.name}`
+                                          : `Sin datos de asistencia - ${stat.name}`}
                                       </h4>
-
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                        <div>
-                                          <div className="text-sm text-muted-foreground">
-                                            Días trabajados
-                                          </div>
-                                          <div className="font-medium">
-                                            {stat.totalDays}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <div className="text-sm text-muted-foreground">
-                                            Horas Totales
-                                          </div>
-                                          <div className="font-medium">
-                                            <Badge
-                                              variant="outline"
-                                              className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-                                            >
-                                              {stat.totalWorkHours.toFixed(1)}{" "}
-                                              hrs
-                                            </Badge>
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <div className="text-sm text-muted-foreground">
-                                            Desglose de Horas
-                                          </div>
-                                          <div className="font-medium flex gap-2 flex-wrap">
-                                            <span className="flex items-center gap-1">
-                                              <Clock className="h-4 w-4 text-gray-500" />
-                                              {stat.totalRegularHours.toFixed(
-                                                1
-                                              )}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                              <Moon className="h-4 w-4 text-indigo-500" />
-                                              {stat.totalNightHours.toFixed(1)}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                              <Timer className="h-4 w-4 text-orange-500" />
-                                              {stat.totalExtraHours.toFixed(1)}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      <div className="overflow-x-auto">
-                                        <Table>
-                                          <TableHeader>
-                                            <TableRow>
-                                              <TableHead>Fecha</TableHead>
-                                              <TableHead>Entrada</TableHead>
-                                              <TableHead>Salida</TableHead>
-                                              <TableHead>Horas Reg.</TableHead>
-                                              <TableHead>Horas Noct.</TableHead>
-                                              <TableHead>Horas Extra</TableHead>
-                                              <TableHead>
-                                                Horas Rebajadas de Almuerzo
-                                              </TableHead>
-                                            </TableRow>
-                                          </TableHeader>
-                                          <TableBody>
-                                            {stat.details.map((detail) => (
-                                              <TableRow key={detail.id}>
-                                                <TableCell>
-                                                  <div className="flex items-center gap-1">
-                                                    <Calendar className="h-3 w-3" />
-                                                    {detail.formatted_date}
-                                                  </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                  {detail.time_in}
-                                                </TableCell>
-                                                <TableCell>
-                                                  {detail.time_out}
-                                                </TableCell>
-                                                <TableCell>
-                                                  {parseFloat(
-                                                    detail.regular_hours
-                                                  ).toFixed(1)}
-                                                </TableCell>
-                                                <TableCell>
-                                                  {parseFloat(
-                                                    detail.night_hours
-                                                  ).toFixed(1)}
-                                                </TableCell>
-                                                <TableCell>
-                                                  {parseFloat(
-                                                    detail.extra_hours
-                                                  ).toFixed(1)}
-                                                </TableCell>
-                                                <TableCell>
-                                                  {parseFloat(
-                                                    detail.lunch_deduction
-                                                  ).toFixed(1)}
-                                                </TableCell>
-                                              </TableRow>
-                                            ))}
-                                          </TableBody>
-                                        </Table>
-                                      </div>
+                                      <Badge
+                                        variant="outline"
+                                        className="cursor-pointer bg-red-50 text-red-700 hover:bg-red-100 text-xs"
+                                        onClick={() =>
+                                          handleEmployeeClick(stat.id)
+                                        }
+                                      >
+                                        ✕ Cerrar
+                                      </Badge>
                                     </div>
-                                  </TableCell>
-                                </TableRow>
-                              )}
+
+                                    {attendanceData.length === 0 ? (
+                                      // Mostrar mensaje cuando no hay datos
+                                      <div className="flex flex-col items-center justify-center py-8 gap-3 text-amber-500">
+                                        <AlertTriangle className="h-12 w-12" />
+                                        <div className="text-center">
+                                          <p className="font-medium">
+                                            No hay datos de asistencia
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            Este empleado no tiene registros de
+                                            entrada/salida para el período
+                                            seleccionado
+                                          </p>
+                                        </div>
+                                        <Badge
+                                          variant="outline"
+                                          className="cursor-pointer bg-blue-50 text-blue-700 hover:bg-blue-100 mt-2"
+                                          onClick={() =>
+                                            handleEmployeeClick(stat.id)
+                                          }
+                                        >
+                                          ← Volver al Resumen
+                                        </Badge>
+                                      </div>
+                                    ) : (
+                                      // Mostrar datos cuando existen
+                                      <>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                          <div>
+                                            <div className="text-sm text-muted-foreground">
+                                              Días trabajados
+                                            </div>
+                                            <div className="font-medium">
+                                              {stat.totalDays}
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <div className="text-sm text-muted-foreground">
+                                              Horas Totales
+                                            </div>
+                                            <div className="font-medium">
+                                              <Badge
+                                                variant="outline"
+                                                className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                                              >
+                                                {stat.totalWorkHours.toFixed(1)}{" "}
+                                                hrs
+                                              </Badge>
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <div className="text-sm text-muted-foreground">
+                                              Desglose de Horas
+                                            </div>
+                                            <div className="font-medium flex gap-2 flex-wrap">
+                                              <span className="flex items-center gap-1">
+                                                <Clock className="h-4 w-4 text-gray-500" />
+                                                {stat.totalRegularHours.toFixed(
+                                                  1,
+                                                )}
+                                              </span>
+                                              <span className="flex items-center gap-1">
+                                                <Moon className="h-4 w-4 text-indigo-500" />
+                                                {stat.totalNightHours.toFixed(
+                                                  1,
+                                                )}
+                                              </span>
+                                              <span className="flex items-center gap-1">
+                                                <Timer className="h-4 w-4 text-orange-500" />
+                                                {stat.totalExtraHours.toFixed(
+                                                  1,
+                                                )}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div className="overflow-x-auto">
+                                          <Table>
+                                            <TableHeader>
+                                              <TableRow>
+                                                <TableHead>Fecha</TableHead>
+                                                <TableHead>Entrada</TableHead>
+                                                <TableHead>Salida</TableHead>
+                                                <TableHead>
+                                                  Horas Reg.
+                                                </TableHead>
+                                                <TableHead>
+                                                  Horas Noct.
+                                                </TableHead>
+                                                <TableHead>
+                                                  Horas Extra
+                                                </TableHead>
+                                                <TableHead>
+                                                  Horas Rebajadas de Almuerzo
+                                                </TableHead>
+                                              </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                              {stat.details.map((detail) => (
+                                                <TableRow key={detail.id}>
+                                                  <TableCell>
+                                                    <div className="flex items-center gap-1">
+                                                      <Calendar className="h-3 w-3" />
+                                                      {detail.formatted_date}
+                                                    </div>
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    {detail.time_in}
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    {detail.time_out}
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    {parseFloat(
+                                                      detail.regular_hours,
+                                                    ).toFixed(1)}
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    {parseFloat(
+                                                      detail.night_hours,
+                                                    ).toFixed(1)}
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    {parseFloat(
+                                                      detail.extra_hours,
+                                                    ).toFixed(1)}
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    {parseFloat(
+                                                      detail.lunch_deduction,
+                                                    ).toFixed(1)}
+                                                  </TableCell>
+                                                </TableRow>
+                                              ))}
+                                            </TableBody>
+                                          </Table>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
                           </React.Fragment>
                         ))}
                       </TableBody>
