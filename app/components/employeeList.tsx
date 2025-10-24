@@ -229,7 +229,7 @@ export function EmployeeList() {
                   <DialogDescription>
                     Formulario para crear empleado,{" "}
                     <span className="font-bold">
-                      el pin sera usado para crear el QR{" "}
+                      el pin sera usado para crear el NFC{" "}
                     </span>
                     necesario para marcar entrada/salida.
                     <br />
