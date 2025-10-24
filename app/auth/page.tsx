@@ -1,14 +1,12 @@
 "use client";
 
 import * as r from "react";
-import { useRouter } from "next/navigation";
 import { authenticateService } from "@/app/utils/api";
 import { AuthPostRequest } from "@/app/interfaces/authInterfaces";
 
 export default function AuthPage() {
   const [uniquePin, setUniquePin] = r.useState<string>("");
   const [error, setError] = r.useState<string>("");
-  const router = useRouter();
 
   const handleSubmit = async (e: r.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,7 +15,9 @@ export default function AuthPage() {
         unique_pin: uniquePin,
       };
       await authenticateService(request);
-      router.push("/");
+      // Use window.location.href instead of router.push to force a full page reload
+      // This ensures the server-side middleware can see the newly set cookie
+      window.location.href = "/";
     } catch (error) {
       console.error("Authentication error:", error);
       setError("Invalid unique pin");
