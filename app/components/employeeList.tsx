@@ -205,7 +205,7 @@ export function EmployeeList() {
           <CardDescription>
             Gestiona los empleados registrados en el sistema
           </CardDescription>
-          <div className="flex items-center py-4 justify-between">
+          <div className="flex flex-col sm:flex-row items-center py-4 justify-between gap-3 w-full">
             <Input
               placeholder="Buscar empleado..."
               value={
@@ -215,7 +215,7 @@ export function EmployeeList() {
               onChange={(e) =>
                 table.getColumn("first_name")?.setFilterValue(e.target.value)
               }
-              className="max-w-sm"
+              className="w-full sm:max-w-sm"
             />
             <Dialog>
               <DialogTrigger asChild>
@@ -223,7 +223,7 @@ export function EmployeeList() {
                   Agregar Empleado
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl w-full flex flex-col items-center justify-center">
+              <DialogContent className="max-w-xs sm:max-w-2xl w-full flex flex-col items-center justify-center">
                 <DialogHeader className="w-full px-8 pt-6">
                   <DialogTitle>Creación de empleado</DialogTitle>
                   <DialogDescription>
@@ -265,8 +265,8 @@ export function EmployeeList() {
             </div>
           ) : (
             <>
-              <div className="rounded-md border">
-                <Table>
+              <div className="rounded-md border overflow-x-auto">
+                <Table className="min-w-full">
                   <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id}>
@@ -315,12 +315,12 @@ export function EmployeeList() {
                   </TableBody>
                 </Table>
               </div>
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="flex-1 text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
+                <div className="text-sm text-muted-foreground text-center sm:text-left">
                   Mostrando {table.getRowModel().rows.length} de{" "}
                   {employeesList.length} empleados
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center gap-2 flex-wrap">
                   <Button
                     variant="outline"
                     size="sm"

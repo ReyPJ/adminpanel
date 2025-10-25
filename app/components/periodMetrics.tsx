@@ -144,7 +144,7 @@ export function PeriodMetrics() {
             </span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Total de horas trabajadas */}
             <div className="flex flex-col gap-2 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
               <div className="flex items-center gap-2">

@@ -312,7 +312,7 @@ const AllTimers = () => {
                     </DialogTitle>
                   </DialogHeader>
                   <Tabs defaultValue="0" className="w-full">
-                    <TabsList className="grid grid-cols-7 mb-4">
+                    <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 mb-4">
                       <TabsTrigger value="0">Dom</TabsTrigger>
                       <TabsTrigger value="1">Lun</TabsTrigger>
                       <TabsTrigger value="2">Mar</TabsTrigger>

@@ -250,7 +250,7 @@ const PaymentRecordsPage: React.FC = () => {
                                   >
                                     <TableCell colSpan={4} className="p-0">
                                       <div className="p-4">
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                           <div>
                                             <div className="text-sm text-muted-foreground">
                                               Horas Regulares

@@ -268,7 +268,7 @@ const TimersByDay = () => {
                   className="border rounded-md p-2 bg-muted/20"
                 >
                   <div className="font-medium">{emp.employee_name}</div>
-                  <div className="grid grid-cols-2 gap-2 mt-1 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1 text-sm">
                     <div className="flex justify-between">
                       <span>Entrada:</span>
                       <span className="font-semibold">
@@ -380,7 +380,7 @@ const TimersByDay = () => {
           <CardDescription>
             Vista de todos los horarios organizados por día de la semana
           </CardDescription>
-          <div className="flex items-center py-4">
+          <div className="flex items-center py-4 w-full">
             <Input
               placeholder="Filtrar por día..."
               value={
@@ -390,13 +390,13 @@ const TimersByDay = () => {
               onChange={(e) =>
                 table.getColumn("day_display")?.setFilterValue(e.target.value)
               }
-              className="max-w-sm"
+              className="w-full sm:max-w-sm"
             />
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
+          <div className="rounded-md border overflow-x-auto">
+            <Table className="min-w-full">
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
@@ -443,8 +443,8 @@ const TimersByDay = () => {
               </TableBody>
             </Table>
           </div>
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 py-4">
+            <div className="flex items-center gap-2 flex-wrap justify-center">
               <Button
                 variant="outline"
                 size="sm"

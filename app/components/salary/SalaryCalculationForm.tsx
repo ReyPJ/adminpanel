@@ -250,7 +250,7 @@ export function SalaryCalculationForm({
             <div className="text-lg font-semibold">Cálculo exitoso</div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <div className="space-y-1">
               <Label className="text-muted-foreground">Horas Regulares:</Label>
               <div className="font-medium">
@@ -395,7 +395,7 @@ export function SalaryCalculationForm({
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex flex-col sm:flex-row justify-between gap-3">
             <Button
               type="button"
               variant="outline"

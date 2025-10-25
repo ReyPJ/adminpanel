@@ -131,7 +131,7 @@ export const GestionPeriodos: React.FC = () => {
           Gestión de Períodos
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex justify-between">
+      <CardContent className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex flex-col items-center gap-2">
           {hasActivePeriod && (
             <p className="text-sm text-red-500 text-center">

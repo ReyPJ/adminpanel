@@ -47,6 +47,17 @@ export function EmployeeRanking() {
   const [stats, setStats] = React.useState<AllEmployeeStats | null>(null);
   const [chartData, setChartData] = React.useState<EmployeeRankData[]>([]);
   const [noPeriodActive, setNoPeriodActive] = React.useState<boolean>(false);
+  const [isMobile, setIsMobile] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -133,7 +144,7 @@ export function EmployeeRanking() {
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                width={100}
+                width={isMobile ? 70 : 100}
               />
               <XAxis dataKey="hours" type="number" />
               <ChartTooltip

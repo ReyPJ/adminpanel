@@ -84,10 +84,10 @@ export const EmployeeDialogUpdateForm = ({
   }
 
   return (
-    <div className="mx-auto my-4 max-w-2xl w-full bg-white p-6 rounded-lg shadow-lg">
+    <div className="mx-auto my-4 max-w-2xl w-full bg-white p-4 sm:p-6 rounded-lg shadow-lg">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="username"
