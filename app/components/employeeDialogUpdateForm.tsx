@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { updateEmployee } from "../utils/api";
 import { EmployeeInterface } from "../interfaces/employeInterfa";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const formSchema = z.object({
   username: z.string().min(1, { message: "El nombre de usuario es requerido" }),
@@ -38,6 +40,27 @@ const formSchema = z.object({
     .min(1, { message: "El factor X de horas nocturnas es requerido" }),
 });
 
+const steps = [
+  {
+    id: "personal",
+    title: "Datos Personales",
+    description: "Nombre de usuario, nombre y apellido",
+    fields: ["username", "first_name", "last_name"],
+  },
+  {
+    id: "contact",
+    title: "Contacto y Seguridad",
+    description: "Teléfono e información de seguridad",
+    fields: ["phone", "unique_pin"],
+  },
+  {
+    id: "labor",
+    title: "Información Laboral",
+    description: "Salario y horas de trabajo",
+    fields: ["salary_hour", "biweekly_hours", "night_shift_factor"],
+  },
+];
+
 type EmployeeDialogUpdateFormProps = {
   employee: EmployeeInterface;
   onSuccess?: () => void;
@@ -47,8 +70,10 @@ export const EmployeeDialogUpdateForm = ({
   employee,
   onSuccess,
 }: EmployeeDialogUpdateFormProps) => {
+  const [currentStep, setCurrentStep] = useState(0);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       username: employee.username || "",
       first_name: employee.first_name || "",
@@ -61,6 +86,27 @@ export const EmployeeDialogUpdateForm = ({
     },
   });
 
+  const validateStep = async () => {
+    const fieldsToValidate = steps[currentStep].fields;
+    const isValid = await form.trigger(
+      fieldsToValidate as (keyof z.infer<typeof formSchema>)[]
+    );
+    return isValid;
+  };
+
+  const handleNext = async () => {
+    const isValid = await validateStep();
+    if (isValid && currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     const submitToApi = async () => {
       try {
@@ -70,6 +116,7 @@ export const EmployeeDialogUpdateForm = ({
           icon: "👍",
           richColors: true,
         });
+        setCurrentStep(0);
         if (onSuccess) onSuccess();
       } catch (error) {
         console.log(error);
@@ -83,14 +130,35 @@ export const EmployeeDialogUpdateForm = ({
     submitToApi();
   }
 
+  const step = steps[currentStep];
+
   return (
-    <div className="mx-auto my-4 max-w-4xl w-full bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+    <div className="w-full bg-white p-0 rounded-lg">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* Datos Personales */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Datos Personales</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Indicador de progreso */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-semibold">{step.title}</h2>
+              <span className="text-sm text-gray-500">
+                Paso {currentStep + 1} de {steps.length}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">{step.description}</p>
+            {/* Barra de progreso */}
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${((currentStep + 1) / steps.length) * 100}%`,
+                }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Paso 1: Datos Personales */}
+          {currentStep === 0 && (
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="username"
@@ -98,7 +166,7 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Nombre de usuario</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="ej: juan_perez" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -111,7 +179,7 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="ej: Juan" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -124,19 +192,18 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Apellido</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="ej: Pérez" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-          </div>
+          )}
 
-          {/* Información de Contacto y Seguridad */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Contacto y Seguridad</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Paso 2: Contacto y Seguridad */}
+          {currentStep === 1 && (
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="phone"
@@ -144,10 +211,10 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Teléfono</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="+506 8123 4567" />
                     </FormControl>
                     <FormDescription>
-                      Incluir <span className="font-bold">+506</span>
+                      Debe incluir <span className="font-bold">+506</span>
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -160,19 +227,18 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>PIN (4+ dígitos)</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="ej: 1234" type="password" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-          </div>
+          )}
 
-          {/* Información Laboral */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Información Laboral</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Paso 3: Información Laboral */}
+          {currentStep === 2 && (
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="salary_hour"
@@ -180,7 +246,7 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Salario por hora</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="ej: 5000" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -193,7 +259,7 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Horas quincenales</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="ej: 96" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -206,25 +272,49 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Factor X nocturno</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="ej: 1.25" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-          </div>
+          )}
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-            onClick={form.handleSubmit(onSubmit)}
-          >
-            {form.formState.isSubmitting
-              ? "Cargando..."
-              : "Actualizar empleado"}
-          </Button>
+          {/* Botones de navegación */}
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrev}
+              disabled={currentStep === 0}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Atrás
+            </Button>
+
+            {currentStep < steps.length - 1 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                className="flex-1 flex items-center justify-center gap-2"
+              >
+                Siguiente
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="flex-1"
+              >
+                {form.formState.isSubmitting
+                  ? "Actualizando..."
+                  : "Actualizar empleado"}
+              </Button>
+            )}
+          </div>
         </form>
       </Form>
     </div>

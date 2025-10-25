@@ -223,14 +223,14 @@ export function EmployeeList() {
                   Agregar Empleado
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-xs sm:max-w-2xl w-full flex flex-col items-center justify-center">
-                <DialogHeader className="w-full px-8 pt-6">
+              <DialogContent className="max-w-full sm:max-w-4xl w-[95vw] sm:w-full flex flex-col max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="w-full px-4 sm:px-8 pt-6">
                   <DialogTitle>Creación de empleado</DialogTitle>
                   <DialogDescription>
                     Formulario para crear empleado.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="w-full px-2 pb-6">
+                <div className="w-full px-4 sm:px-8 pb-6">
                   <EmployeeDialogCreateForm />
                 </div>
               </DialogContent>
@@ -331,14 +331,14 @@ export function EmployeeList() {
       </Card>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl w-full flex flex-col items-center justify-center">
-          <DialogHeader className="w-full px-8 pt-6">
+        <DialogContent className="max-w-full sm:max-w-4xl w-[95vw] sm:w-full flex flex-col max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="w-full px-4 sm:px-8 pt-6">
             <DialogTitle>Editar empleado</DialogTitle>
             <DialogDescription>
               Formulario para editar empleado.
             </DialogDescription>
           </DialogHeader>
-          <div className="w-full px-2 pb-6">
+          <div className="w-full px-4 sm:px-8 pb-6">
             {editingEmployee && (
               <EmployeeDialogUpdateForm
                 employee={editingEmployee}
