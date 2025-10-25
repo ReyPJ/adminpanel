@@ -73,124 +73,140 @@ export const EmployeeDialogCreateForm = () => {
     submitToApi();
   }
   return (
-    <div className="mx-auto my-4 max-w-2xl w-full bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+    <div className="mx-auto my-4 max-w-4xl w-full bg-white p-4 sm:p-6 rounded-lg shadow-lg">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre de usuario</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="first_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="last_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apellido</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="salary_hour"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Salario por hora</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Datos Personales */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Datos Personales</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre de usuario</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
-          <div className="flex flex-col gap-3">
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telefono</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    El numero debe contener{" "}
-                    <span className="font-bold">+506</span>
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="unique_pin"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pin</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="biweekly_hours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Horas quincenales</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="night_shift_factor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Factor X de horas nocturnas</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+          {/* Información de Contacto y Seguridad */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Contacto y Seguridad</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teléfono</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Incluir <span className="font-bold">+506</span>
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="unique_pin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>PIN (4+ dígitos)</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
+
+          {/* Información Laboral */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Información Laboral</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="salary_hour"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Salario por hora</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="biweekly_hours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Horas quincenales</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="night_shift_factor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Factor X nocturno</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
           <Button
             type="submit"
-            className="mt-4 w-full"
+            className="w-full"
             disabled={form.formState.isSubmitting}
             onClick={form.handleSubmit(onSubmit)}
           >
