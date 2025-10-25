@@ -227,25 +227,7 @@ export function EmployeeList() {
                 <DialogHeader className="w-full px-8 pt-6">
                   <DialogTitle>Creación de empleado</DialogTitle>
                   <DialogDescription>
-                    Formulario para crear empleado,{" "}
-                    <span className="font-bold">
-                      el pin sera usado para crear el NFC{" "}
-                    </span>
-                    necesario para marcar entrada/salida.
-                    <br />
-                    Recordar que el telefono que se ingrese sera al que se
-                    <span className="font-bold">
-                      enviaran las notificaciones de aviso de entrada/salida.
-                    </span>
-                    <br />
-                    El{" "}
-                    <span className="font-bold">
-                      factor X de horas nocturnas es un valor que se multiplica
-                      por el salario por hora para calcular el salario de las
-                      horas nocturnas.
-                    </span>{" "}
-                    De no aplicarse este multiplicador, deje el valor en{" "}
-                    <span className="font-bold">1</span>.
+                    Formulario para crear empleado.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="w-full px-2 pb-6">
@@ -353,24 +335,7 @@ export function EmployeeList() {
           <DialogHeader className="w-full px-8 pt-6">
             <DialogTitle>Editar empleado</DialogTitle>
             <DialogDescription>
-              Formulario para editar empleado,{" "}
-              <span className="font-bold">
-                sin cambias el pin, deberas generar un nuevo QR .
-              </span>
-              <br />
-              Recordar que el telefono que se ingrese sera al que se
-              <span className="font-bold">
-                enviaran las notificaciones de aviso de entrada/salida.
-              </span>
-              <br />
-              El{" "}
-              <span className="font-bold">
-                factor X de horas nocturnas es un valor que se multiplica por el
-                salario por hora para calcular el salario de las horas
-                nocturnas.
-              </span>{" "}
-              De no aplicarse este multiplicador, deje el valor en{" "}
-              <span className="font-bold">1</span>.
+              Formulario para editar empleado.
             </DialogDescription>
           </DialogHeader>
           <div className="w-full px-2 pb-6">
