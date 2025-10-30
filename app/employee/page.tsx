@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { ToggleTheme } from "../components/toggleTheme";
 import { EmployeeList } from "../components/employeeList";
@@ -70,6 +71,13 @@ export default function EmployeePage() {
             })}
           </BreadcrumbList>
         </Breadcrumb>
+        <div className="ml-auto">
+          <Button asChild>
+            <a href="/app/app-release.apk" download="app-release.apk">
+              Descargar APK
+            </a>
+          </Button>
+        </div>
       </header>
 
       <div className="flex flex-1 flex-col gap-4 p-4">
