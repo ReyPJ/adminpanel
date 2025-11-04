@@ -94,7 +94,9 @@ export const EmployeeDialogUpdateForm = ({
     return isValid;
   };
 
-  const handleNext = async () => {
+  const handleNext = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     const isValid = await validateStep();
     if (isValid && currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -108,6 +110,11 @@ export const EmployeeDialogUpdateForm = ({
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // Solo enviar si estamos en el último paso
+    if (currentStep !== steps.length - 1) {
+      return;
+    }
+
     const submitToApi = async () => {
       try {
         await updateEmployee(employee.id, values as EmployeeInterface);
@@ -219,7 +226,15 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>Teléfono</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="+506 8123 4567" />
+                      <Input
+                        {...field}
+                        placeholder="+506 8123 4567"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormDescription>
                       Debe incluir <span className="font-bold">+506</span>
@@ -235,7 +250,16 @@ export const EmployeeDialogUpdateForm = ({
                   <FormItem>
                     <FormLabel>PIN (4+ dígitos)</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="ej: 1234" type="password" />
+                      <Input
+                        {...field}
+                        placeholder="ej: 1234"
+                        type="password"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -305,7 +329,7 @@ export const EmployeeDialogUpdateForm = ({
             {currentStep < steps.length - 1 ? (
               <Button
                 type="button"
-                onClick={handleNext}
+                onClick={(e) => handleNext(e)}
                 className="flex-1 flex items-center justify-center gap-2"
               >
                 Siguiente
