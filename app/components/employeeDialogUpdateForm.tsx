@@ -135,7 +135,15 @@ export const EmployeeDialogUpdateForm = ({
   return (
     <div className="w-full bg-white p-0 rounded-lg">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+            }
+          }}
+          className="space-y-6"
+        >
           {/* Indicador de progreso */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
