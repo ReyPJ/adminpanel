@@ -24,7 +24,6 @@ import Cookies from "js-cookie";
 import {
   nightHoursCountInterface,
   requestCalculateSalaryInterface,
-  responseCalculateSalaryInterface,
   CalculateSalaryResponse,
   LiveSummaryResponse,
 } from "../interfaces/salaryInterfaces";
