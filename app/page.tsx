@@ -59,8 +59,8 @@ export default function Home() {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-2">
+      <div className="flex flex-1 flex-col gap-3 sm:gap-4 p-3 sm:p-4 md:p-6">
+        <div className="grid auto-rows-min gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2">
           <ActivePeriod />
           <EmployeeRanking />
         </div>
@@ -68,7 +68,7 @@ export default function Home() {
         <div className="w-full">
           <LiveSummary autoRefresh={true} refreshInterval={60} />
         </div>
-        <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+        <div className="bg-muted/50 min-h-[50vh] sm:min-h-[100vh] flex-1 rounded-xl md:min-h-min">
           <PeriodMetrics />
         </div>
       </div>
