@@ -15,6 +15,7 @@ import { ActivePeriod } from "@/app/components/activePeriod";
 import { EmployeeRanking } from "@/app/components/employeeRanking";
 import { ToggleTheme } from "./components/toggleTheme";
 import { PeriodMetrics } from "@/app/components/periodMetrics";
+import { LiveSummary } from "@/app/components/salary/LiveSummary";
 
 export default function Home() {
   const pathname = usePathname();
@@ -62,6 +63,10 @@ export default function Home() {
         <div className="grid auto-rows-min gap-4 md:grid-cols-2">
           <ActivePeriod />
           <EmployeeRanking />
+        </div>
+        {/* Resumen de Horas en Tiempo Real */}
+        <div className="w-full">
+          <LiveSummary autoRefresh={true} refreshInterval={60} />
         </div>
         <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min">
           <PeriodMetrics />

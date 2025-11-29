@@ -25,6 +25,8 @@ import {
   nightHoursCountInterface,
   requestCalculateSalaryInterface,
   responseCalculateSalaryInterface,
+  CalculateSalaryResponse,
+  LiveSummaryResponse,
 } from "../interfaces/salaryInterfaces";
 import { attendanceInterface } from "../interfaces/attendanceDetailsInterface";
 
@@ -188,9 +190,12 @@ export const getNightHoursCount = async (
 
 export const calculateSalary = async (
   request: requestCalculateSalaryInterface
-): Promise<responseCalculateSalaryInterface> => {
+): Promise<CalculateSalaryResponse> => {
   try {
-    const response = await api.post("salary/calculate/", request);
+    const response = await api.post<CalculateSalaryResponse>(
+      "salary/calculate/",
+      request
+    );
     return response.data;
   } catch (error) {
     console.error("Error calculating salary:", error);
@@ -397,6 +402,23 @@ export const deleteTimer = async (timerId: number) => {
     return response.data;
   } catch (error) {
     console.error("Error deleting timer:", error);
+    throw error;
+  }
+};
+
+// Nueva función para obtener resumen de horas en tiempo real
+export const getLiveSummary = async (params?: {
+  period_id?: number;
+  employee_id?: number;
+}): Promise<LiveSummaryResponse> => {
+  try {
+    const response = await api.get<LiveSummaryResponse>(
+      "salary/live-summary/",
+      { params }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching live summary:", error);
     throw error;
   }
 };
