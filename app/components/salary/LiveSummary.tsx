@@ -168,24 +168,24 @@ export function LiveSummary({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Resumen de Horas en Tiempo Real
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="truncate">Resumen de Horas en Tiempo Real</span>
             </CardTitle>
-            <CardDescription>
-              {data.period.description}
+            <CardDescription className="mt-1">
+              <span className="block sm:inline">{data.period.description}</span>
               {data.period.is_closed && (
-                <Badge variant="outline" className="ml-2 bg-red-50">
+                <Badge variant="outline" className="ml-0 sm:ml-2 mt-1 sm:mt-0 bg-red-50 text-xs">
                   Período Cerrado
                 </Badge>
               )}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {lastUpdate && (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-muted-foreground hidden sm:block">
                 Última actualización:{" "}
                 {lastUpdate.toLocaleTimeString("es-CR", {
                   hour: "2-digit",
@@ -198,6 +198,7 @@ export function LiveSummary({
               variant="outline"
               size="sm"
               disabled={loading}
+              className="h-8 w-8 sm:h-9 sm:w-auto px-2 sm:px-3"
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -223,37 +224,37 @@ export function LiveSummary({
         )}
 
         {/* Estadísticas generales */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-4 w-4 text-blue-500" />
-              <div className="text-sm text-muted-foreground">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="bg-muted/50 p-3 sm:p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <Users className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 Total Empleados
               </div>
             </div>
-            <div className="text-2xl font-bold">{data.total_employees}</div>
+            <div className="text-xl sm:text-2xl font-bold">{data.total_employees}</div>
           </div>
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-4 w-4 text-green-500" />
-              <div className="text-sm text-muted-foreground">
+          <div className="bg-muted/50 p-3 sm:p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <Clock className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 Total Horas Trabajadas
               </div>
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-xl sm:text-2xl font-bold">
               {data.employees
                 .reduce((sum, emp) => sum + parseFloat(emp.total_hours), 0)
                 .toFixed(1)}
             </div>
           </div>
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Moon className="h-4 w-4 text-indigo-500" />
-              <div className="text-sm text-muted-foreground">
+          <div className="bg-muted/50 p-3 sm:p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <Moon className="h-4 w-4 text-indigo-500 flex-shrink-0" />
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 Horas Nocturnas
               </div>
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-xl sm:text-2xl font-bold">
               {data.employees
                 .reduce((sum, emp) => sum + parseFloat(emp.night_hours), 0)
                 .toFixed(1)}
@@ -270,91 +271,93 @@ export function LiveSummary({
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empleado</TableHead>
-                  <TableHead className="text-right">Días</TableHead>
-                  <TableHead className="text-right">Horas Reg.</TableHead>
-                  <TableHead className="text-right">Horas Noct.</TableHead>
-                  <TableHead className="text-right">Horas Extra</TableHead>
-                  <TableHead className="text-right">Total Horas</TableHead>
-                  <TableHead className="text-right">
-                    Salario Estimado
-                  </TableHead>
-                  <TableHead className="text-center">Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.employees.map((employee) => (
-                  <TableRow key={employee.employee_id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        {employee.employee_username}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {employee.days_worked}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Clock className="h-3 w-3 text-gray-500" />
-                        {parseFloat(employee.regular_hours).toFixed(1)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Moon className="h-3 w-3 text-indigo-500" />
-                        {parseFloat(employee.night_hours).toFixed(1)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Timer className="h-3 w-3 text-orange-500" />
-                        {parseFloat(employee.extra_hours).toFixed(1)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="outline" className="bg-blue-50">
-                        {parseFloat(employee.total_hours).toFixed(1)} hrs
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(employee.estimated_salary)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {employee.pending_checkout > 0 ? (
-                        <Badge variant="outline" className="bg-amber-50">
-                          {employee.pending_checkout} pendiente
-                          {employee.pending_checkout > 1 ? "s" : ""}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-green-50">
-                          ✓ Completo
-                        </Badge>
-                      )}
-                    </TableCell>
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full align-middle">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Empleado</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">Días</TableHead>
+                    <TableHead className="text-right hidden lg:table-cell">Horas Reg.</TableHead>
+                    <TableHead className="text-right hidden lg:table-cell">Horas Noct.</TableHead>
+                    <TableHead className="text-right hidden lg:table-cell">Horas Extra</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Salario</TableHead>
+                    <TableHead className="text-center hidden md:table-cell">Estado</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data.employees.map((employee) => (
+                    <TableRow key={employee.employee_id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-1 sm:gap-2 min-w-[100px]">
+                          <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-xs sm:text-sm truncate">
+                            {employee.employee_username}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-xs sm:text-sm hidden sm:table-cell">
+                        {employee.days_worked}
+                      </TableCell>
+                      <TableCell className="text-right text-xs sm:text-sm hidden lg:table-cell">
+                        <div className="flex items-center justify-end gap-1">
+                          <Clock className="h-3 w-3 text-gray-500" />
+                          {parseFloat(employee.regular_hours).toFixed(1)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-xs sm:text-sm hidden lg:table-cell">
+                        <div className="flex items-center justify-end gap-1">
+                          <Moon className="h-3 w-3 text-indigo-500" />
+                          {parseFloat(employee.night_hours).toFixed(1)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-xs sm:text-sm hidden lg:table-cell">
+                        <div className="flex items-center justify-end gap-1">
+                          <Timer className="h-3 w-3 text-orange-500" />
+                          {parseFloat(employee.extra_hours).toFixed(1)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant="outline" className="bg-blue-50 text-xs whitespace-nowrap">
+                          {parseFloat(employee.total_hours).toFixed(1)} hrs
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-xs sm:text-sm whitespace-nowrap">
+                        {formatCurrency(employee.estimated_salary)}
+                      </TableCell>
+                      <TableCell className="text-center hidden md:table-cell">
+                        {employee.pending_checkout > 0 ? (
+                          <Badge variant="outline" className="bg-amber-50 text-xs whitespace-nowrap">
+                            {employee.pending_checkout} pend.
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-green-50 text-xs">
+                            ✓
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
 
         {/* Footer con información adicional */}
-        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
           <div>
             {autoRefresh && (
               <span className="flex items-center gap-1">
-                <RefreshCw className="h-3 w-3" />
-                Actualización automática cada {refreshInterval}s
+                <RefreshCw className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">Auto-refresh: {refreshInterval}s</span>
               </span>
             )}
           </div>
-          <div>
-            ℹ️ Los valores son estimados y no marcan registros como pagados
+          <div className="flex items-center gap-1">
+            <span className="flex-shrink-0">ℹ️</span>
+            <span className="text-xs">Valores estimados</span>
           </div>
         </div>
       </CardContent>
