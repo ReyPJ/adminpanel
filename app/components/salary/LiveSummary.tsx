@@ -4,7 +4,6 @@ import * as React from "react";
 import { getLiveSummary } from "@/app/utils/api";
 import {
   LiveSummaryResponse,
-  LiveSummaryEmployee,
   SalaryWarning,
 } from "@/app/interfaces/salaryInterfaces";
 import {

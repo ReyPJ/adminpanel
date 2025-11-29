@@ -6,7 +6,6 @@ import {
   nightHoursCountInterface,
   requestCalculateSalaryInterface,
   responseCalculateSalaryInterface,
-  CalculateSalaryResponse,
   SalaryWarning,
 } from "@/app/interfaces/salaryInterfaces";
 import { attendanceInterface } from "@/app/interfaces/attendanceDetailsInterface";
