@@ -6,6 +6,8 @@ import {
   nightHoursCountInterface,
   requestCalculateSalaryInterface,
   responseCalculateSalaryInterface,
+  CalculateSalaryResponse,
+  SalaryWarning,
 } from "@/app/interfaces/salaryInterfaces";
 import { attendanceInterface } from "@/app/interfaces/attendanceDetailsInterface";
 import {
@@ -31,6 +33,7 @@ import {
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Tipo para errores de API
 interface ApiError {
@@ -64,6 +67,7 @@ export function SalaryCalculationForm({
   const [error, setError] = React.useState<string | null>(null);
   const [result, setResult] =
     React.useState<responseCalculateSalaryInterface | null>(null);
+  const [warnings, setWarnings] = React.useState<SalaryWarning[]>([]);
   const [attendanceData, setAttendanceData] = React.useState<
     attendanceInterface[]
   >([]);
@@ -189,7 +193,29 @@ export function SalaryCalculationForm({
       }
 
       console.log(calculationResult);
-      setResult(calculationResult);
+
+      // Manejar warnings si existen
+      if (calculationResult.warnings && calculationResult.warnings.length > 0) {
+        setWarnings(calculationResult.warnings);
+        // Mostrar warnings como toast
+        calculationResult.warnings.forEach((warning) => {
+          if (warning.type === "early_calculation") {
+            toast.warning(warning.message, {
+              duration: 5000,
+            });
+          } else if (warning.type === "missing_checkout") {
+            toast.error(warning.message, {
+              duration: 5000,
+            });
+          } else {
+            toast.info(warning.message, {
+              duration: 5000,
+            });
+          }
+        });
+      }
+
+      setResult(calculationResult.salary_record);
       toast.success("Salario calculado con éxito");
 
       // Notificar que el cálculo se completó después de mostrar los resultados por un momento
@@ -245,6 +271,32 @@ export function SalaryCalculationForm({
       {result ? (
         // Mostrar resultados del cálculo
         <CardContent className="space-y-4">
+          {/* Mostrar warnings si existen */}
+          {warnings.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {warnings.map((warning, index) => (
+                <Alert
+                  key={index}
+                  variant={
+                    warning.type === "missing_checkout"
+                      ? "destructive"
+                      : "default"
+                  }
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>
+                    {warning.type === "early_calculation"
+                      ? "Cálculo Anticipado"
+                      : warning.type === "missing_checkout"
+                        ? "Registro Incompleto"
+                        : "Advertencia"}
+                  </AlertTitle>
+                  <AlertDescription>{warning.message}</AlertDescription>
+                </Alert>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center justify-center py-2 gap-2 text-green-600">
             <CheckCircle className="h-6 w-6" />
             <div className="text-lg font-semibold">Cálculo exitoso</div>
