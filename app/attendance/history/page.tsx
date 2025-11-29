@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 import * as React from "react";
 import { ToggleTheme } from "@/app/components/toggleTheme";
 import { PeriodSelector } from "@/app/components/salary/PeriodSelector";
-import { getAttendanceDetails } from "@/app/utils/api";
+import { getAttendanceDetails, getAllEmployees } from "@/app/utils/api";
 import { getPeriodResponse } from "@/app/interfaces/periodsInterfaces";
 import {
   Card,
@@ -71,20 +71,24 @@ const AttendanceHistoryPage: React.FC = () => {
     null,
   );
 
-  // Cargar la lista de empleados desde localStorage al inicio
+  // Cargar la lista de empleados desde la API al inicio
   React.useEffect(() => {
-    try {
-      const storedEmployees = localStorage.getItem("employees_list");
-      if (storedEmployees) {
-        // excludo user with id 1
-        const filteredEmployees = JSON.parse(storedEmployees).filter(
+    const fetchEmployees = async () => {
+      try {
+        const response = await getAllEmployees();
+        // Excluir usuario con id 1 (admin)
+        const filteredEmployees = response.filter(
           (employee: EmployeeInterface) => employee.id !== 1,
         );
         setEmployees(filteredEmployees);
+        // Actualizar localStorage para otros componentes
+        localStorage.setItem("employees_list", JSON.stringify(response));
+      } catch (error) {
+        console.error("Error al cargar empleados desde la API:", error);
       }
-    } catch (error) {
-      console.error("Error al cargar empleados desde localStorage:", error);
-    }
+    };
+
+    fetchEmployees();
   }, []);
 
   const handlePeriodSelected = async (period: getPeriodResponse) => {
