@@ -280,26 +280,8 @@ const AttendanceHistoryPage: React.FC = () => {
                       primero en la sección correspondiente.
                     </div>
                   </div>
-                ) : attendanceData.length === 0 && selectedEmployee ? (
-                  <div className="flex flex-col items-center py-4 mb-4 gap-1 text-amber-500 bg-amber-50/50 rounded-md">
-                    <AlertTriangle className="h-6 w-6" />
-                    <div className="text-sm text-center">
-                      No hay datos de asistencia para este empleado en el
-                      período seleccionado
-                    </div>
-                  </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    {/* Si hay un empleado seleccionado pero no hay datos, mostramos una advertencia */}
-                    {attendanceData.length === 0 && selectedEmployee && (
-                      <div className="flex flex-col items-center py-4 mb-4 gap-1 text-amber-500 bg-amber-50/50 rounded-md">
-                        <AlertTriangle className="h-6 w-6" />
-                        <div className="text-sm text-center">
-                          No hay datos de asistencia para este empleado en el
-                          período seleccionado
-                        </div>
-                      </div>
-                    )}
                     <Table>
                       <TableHeader>
                         <TableRow>
