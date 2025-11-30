@@ -2,6 +2,7 @@ import axios from "axios";
 import {
   getPeriodResponse,
   postPeriodRequest,
+  CloseAndCreateResponse,
 } from "@/app/interfaces/periodsInterfaces";
 import { AllEmployeeStats } from "@/app/interfaces/Stats";
 import {
@@ -167,6 +168,26 @@ export const closeCurrentPeriod = async (action: "close_current") => {
     return response.data;
   } catch (error) {
     console.error("Error closing period:", error);
+    throw error;
+  }
+};
+
+export const closeAndCreateNewPeriod = async (
+  startDate?: string,
+  endDate?: string
+): Promise<CloseAndCreateResponse> => {
+  try {
+    const response = await api.post<CloseAndCreateResponse>(
+      "salary/period/",
+      {
+        action: "close_and_create_new",
+        start_date: startDate,
+        end_date: endDate,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error closing and creating new period:", error);
     throw error;
   }
 };

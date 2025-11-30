@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   postPeriod,
-  closeCurrentPeriod,
+  closeAndCreateNewPeriod,
   getActivePeriod,
 } from "@/app/utils/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,21 +19,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 export const GestionPeriodos: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isCloseDialogOpen, setIsCloseDialogOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [formData, setFormData] = React.useState<{
     start_date: string;
@@ -42,7 +32,15 @@ export const GestionPeriodos: React.FC = () => {
     start_date: "",
     end_date: "",
   });
+  const [closeFormData, setCloseFormData] = React.useState<{
+    start_date: string;
+    end_date: string;
+  }>({
+    start_date: "",
+    end_date: "",
+  });
   const [formError, setFormError] = React.useState<string>("");
+  const [closeFormError, setCloseFormError] = React.useState<string>("");
 
   const [hasActivePeriod, setHasActivePeriod] = React.useState<boolean>(false);
 
@@ -71,6 +69,11 @@ export const GestionPeriodos: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCloseFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCloseFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,16 +106,52 @@ export const GestionPeriodos: React.FC = () => {
     }
   };
 
-  const handleClosePeriod = async () => {
+  const handleCloseAndCreatePeriod = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCloseFormError("");
+
+    // Validar formato dd/mm/yyyy si se proporcionan fechas
+    if (closeFormData.start_date || closeFormData.end_date) {
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+      if (
+        (closeFormData.start_date &&
+          !dateRegex.test(closeFormData.start_date)) ||
+        (closeFormData.end_date && !dateRegex.test(closeFormData.end_date))
+      ) {
+        setCloseFormError("Las fechas deben tener el formato dd/mm/yyyy");
+        return;
+      }
+    }
+
     try {
       setLoading(true);
-      await closeCurrentPeriod("close_current");
-      toast.success("Periodo actual cerrado exitosamente");
-      // Recargar la página para actualizar  la información
+      const result = await closeAndCreateNewPeriod(
+        closeFormData.start_date || undefined,
+        closeFormData.end_date || undefined
+      );
+
+      // Mostrar información de migración si hay empleados migrados
+      if (result.migration.migrated_count > 0) {
+        const employeeNames = result.migration.migrated_employees
+          .map((e) => e.employee_username)
+          .join(", ");
+
+        toast.success(
+          `Periodo cerrado exitosamente. ${result.migration.migrated_count} empleados migrados al nuevo periodo: ${employeeNames}`,
+          {
+            duration: 6000,
+          }
+        );
+      } else {
+        toast.success("Periodo cerrado y nuevo periodo creado exitosamente");
+      }
+
+      setIsCloseDialogOpen(false);
+      // Recargar la página para actualizar la información
       window.location.reload();
     } catch (err) {
       console.error(err);
-      toast.error("Error al cerrar el periodo actual");
+      toast.error("Error al cerrar el periodo y crear uno nuevo");
     } finally {
       setLoading(false);
     }
@@ -214,33 +253,89 @@ export const GestionPeriodos: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Período Actual
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción cerrará el período actual y no se podrá deshacer.
-                Los registros de tiempo y pagos quedarán finalizados.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleClosePeriod}
-                disabled={loading}
-                className="bg-red-500 hover:bg-red-600"
-              >
-                {loading ? "Cerrando..." : "Cerrar Período"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Button
+          variant="destructive"
+          onClick={() => setIsCloseDialogOpen(true)}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Cerrar Período y Crear Nuevo
+        </Button>
+
+        <Dialog
+          open={isCloseDialogOpen}
+          onOpenChange={(open) => {
+            setIsCloseDialogOpen(open);
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cerrar Período Actual y Crear Nuevo</DialogTitle>
+              <DialogDescription>
+                Esta acción cerrará el período actual y creará uno nuevo. Los
+                empleados actualmente trabajando serán migrados automáticamente
+                al nuevo periodo.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCloseAndCreatePeriod}>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="close_start_date">
+                    Fecha de inicio del nuevo período (opcional)
+                  </Label>
+                  <Input
+                    id="close_start_date"
+                    name="start_date"
+                    type="text"
+                    value={closeFormData.start_date}
+                    onChange={handleCloseFormChange}
+                    placeholder="dd/mm/yyyy (por defecto: hoy)"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="close_end_date">
+                    Fecha de fin del nuevo período (opcional)
+                  </Label>
+                  <Input
+                    id="close_end_date"
+                    name="end_date"
+                    type="text"
+                    value={closeFormData.end_date}
+                    onChange={handleCloseFormChange}
+                    placeholder="dd/mm/yyyy (por defecto: hoy + 15 días)"
+                  />
+                </div>
+                {closeFormError && (
+                  <p className="text-red-500 text-sm text-center">
+                    {closeFormError}
+                  </p>
+                )}
+                <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    ℹ️ Los empleados actualmente trabajando serán migrados
+                    automáticamente al nuevo periodo.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCloseDialogOpen(false)}
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  {loading ? "Cerrando y creando..." : "Cerrar y Crear"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
