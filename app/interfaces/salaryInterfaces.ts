@@ -16,7 +16,6 @@ export interface requestCalculateSalaryInterface {
   employee_id: number;
   apply_night_factor: boolean;
   period_id: number;
-  lunch_deduction_hours: number;
   other_deductions: number;
   other_deductions_description: string;
 }

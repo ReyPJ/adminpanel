@@ -52,7 +52,6 @@ interface SalaryCalculationFormProps {
 
 type FormData = {
   applyNightFactor: boolean;
-  lunchDeductionHours: number;
   otherDeductions: number;
   otherDeductionsDescription: string;
 };
@@ -84,7 +83,6 @@ export function SalaryCalculationForm({
   } = useForm<FormData>({
     defaultValues: {
       applyNightFactor: true,
-      lunchDeductionHours: 0,
       otherDeductions: 0,
       otherDeductionsDescription: "",
     },
@@ -147,10 +145,6 @@ export function SalaryCalculationForm({
     return Array.isArray(attendanceData) ? attendanceData.length : 0;
   }, [attendanceData]);
 
-  const suggestedLunchHours = React.useMemo(() => {
-    return workDays > 0 ? workDays * 0.5 : 0;
-  }, [workDays]);
-
   const onSubmit = async (data: FormData) => {
     try {
       setLoading(true);
@@ -168,9 +162,6 @@ export function SalaryCalculationForm({
       }
 
       // Validar que los números sean válidos
-      const lunchHours = isNaN(data.lunchDeductionHours)
-        ? 0
-        : data.lunchDeductionHours;
       const otherDeductions = isNaN(data.otherDeductions)
         ? 0
         : data.otherDeductions;
@@ -179,7 +170,6 @@ export function SalaryCalculationForm({
         employee_id: employee.id,
         apply_night_factor: data.applyNightFactor,
         period_id: periodId,
-        lunch_deduction_hours: lunchHours,
         other_deductions: otherDeductions,
         other_deductions_description: data.otherDeductionsDescription || "",
       };
@@ -254,8 +244,7 @@ export function SalaryCalculationForm({
           {!attendanceLoading && !attendanceError && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-3 w-3" />
-              Días trabajados: {workDays} | Horas de almuerzo sugeridas:{" "}
-              {suggestedLunchHours.toFixed(1)} hrs
+              Días trabajados: {workDays}
             </div>
           )}
           {attendanceError && (
@@ -373,46 +362,6 @@ export function SalaryCalculationForm({
               <Label htmlFor="apply-night-factor">
                 Aplicar factor nocturno ({employee.night_shift_factor}x)
               </Label>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lunch-deduction">
-                Horas de almuerzo a deducir
-              </Label>
-              {!attendanceLoading && !attendanceError && workDays > 0 && (
-                <div className="text-xs text-muted-foreground mb-1">
-                  💡 Sugerencia: {suggestedLunchHours.toFixed(1)} hrs (basado en{" "}
-                  {workDays} días trabajados × 0.5 hrs/día)
-                </div>
-              )}
-              {attendanceError && (
-                <div className="text-xs text-amber-600 mb-1">
-                  ⚠️ No se pudieron cargar los días trabajados. Ingrese
-                  manualmente.
-                </div>
-              )}
-              <Input
-                id="lunch-deduction"
-                type="number"
-                step="0.5"
-                min="0"
-                max="40"
-                placeholder={
-                  workDays > 0 && !attendanceError
-                    ? `Sugerido: ${suggestedLunchHours.toFixed(1)}`
-                    : "Ej: 2.5"
-                }
-                {...register("lunchDeductionHours", {
-                  valueAsNumber: true,
-                  min: { value: 0, message: "No puede ser negativo" },
-                  max: { value: 40, message: "Máximo 40 horas por período" },
-                })}
-              />
-              {errors.lunchDeductionHours && (
-                <p className="text-sm text-red-500">
-                  {errors.lunchDeductionHours.message}
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">

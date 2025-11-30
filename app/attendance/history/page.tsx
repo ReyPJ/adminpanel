@@ -470,10 +470,10 @@ const AttendanceHistoryPage: React.FC = () => {
                                                     </div>
                                                   </TableCell>
                                                   <TableCell>
-                                                    {detail.time_in}
+                                                    {detail.time_in?.slice(0, 5) || '-'}
                                                   </TableCell>
                                                   <TableCell>
-                                                    {detail.time_out}
+                                                    {detail.time_out?.slice(0, 5) || '-'}
                                                   </TableCell>
                                                   <TableCell>
                                                     {parseFloat(
