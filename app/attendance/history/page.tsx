@@ -168,10 +168,10 @@ const AttendanceHistoryPage: React.FC = () => {
       stats.totalNightHours += parseFloat(record.night_hours);
       stats.totalExtraHours += parseFloat(record.extra_hours);
       stats.totalLunchDeduction += parseFloat(record.lunch_deduction);
+      // Horas trabajadas = regulares + nocturnas (sin incluir horas extra)
       stats.totalWorkHours +=
         parseFloat(record.regular_hours) +
-        parseFloat(record.night_hours) +
-        parseFloat(record.extra_hours);
+        parseFloat(record.night_hours);
       stats.details.push(record);
     });
 
@@ -389,7 +389,7 @@ const AttendanceHistoryPage: React.FC = () => {
                                     ) : (
                                       // Mostrar datos cuando existen
                                       <>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                                           <div>
                                             <div className="text-sm text-muted-foreground">
                                               Días trabajados
@@ -400,7 +400,7 @@ const AttendanceHistoryPage: React.FC = () => {
                                           </div>
                                           <div>
                                             <div className="text-sm text-muted-foreground">
-                                              Horas Totales
+                                              Horas Trabajadas
                                             </div>
                                             <div className="font-medium">
                                               <Badge
@@ -414,27 +414,25 @@ const AttendanceHistoryPage: React.FC = () => {
                                           </div>
                                           <div>
                                             <div className="text-sm text-muted-foreground">
-                                              Desglose de Horas
+                                              Horas Nocturnas
                                             </div>
-                                            <div className="font-medium flex gap-2 flex-wrap">
-                                              <span className="flex items-center gap-1">
-                                                <Clock className="h-4 w-4 text-gray-500" />
-                                                {stat.totalRegularHours.toFixed(
-                                                  1,
-                                                )}
-                                              </span>
-                                              <span className="flex items-center gap-1">
-                                                <Moon className="h-4 w-4 text-indigo-500" />
-                                                {stat.totalNightHours.toFixed(
-                                                  1,
-                                                )}
-                                              </span>
-                                              <span className="flex items-center gap-1">
-                                                <Timer className="h-4 w-4 text-orange-500" />
-                                                {stat.totalExtraHours.toFixed(
-                                                  1,
-                                                )}
-                                              </span>
+                                            <div className="font-medium flex items-center gap-1">
+                                              <Moon className="h-4 w-4 text-indigo-500" />
+                                              {stat.totalNightHours.toFixed(1)} hrs
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <div className="text-sm text-muted-foreground">
+                                              Horas Extra
+                                            </div>
+                                            <div className="font-medium">
+                                              <Badge
+                                                variant="outline"
+                                                className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100"
+                                              >
+                                                <Timer className="h-4 w-4 mr-1" />
+                                                {stat.totalExtraHours.toFixed(1)} hrs
+                                              </Badge>
                                             </div>
                                           </div>
                                         </div>
@@ -451,9 +449,6 @@ const AttendanceHistoryPage: React.FC = () => {
                                                 </TableHead>
                                                 <TableHead>
                                                   Horas Noct.
-                                                </TableHead>
-                                                <TableHead>
-                                                  Horas Extra
                                                 </TableHead>
                                                 <TableHead>
                                                   Horas Rebajadas de Almuerzo
@@ -483,11 +478,6 @@ const AttendanceHistoryPage: React.FC = () => {
                                                   <TableCell>
                                                     {parseFloat(
                                                       detail.night_hours,
-                                                    ).toFixed(1)}
-                                                  </TableCell>
-                                                  <TableCell>
-                                                    {parseFloat(
-                                                      detail.extra_hours,
                                                     ).toFixed(1)}
                                                   </TableCell>
                                                   <TableCell>

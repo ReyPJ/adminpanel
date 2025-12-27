@@ -224,7 +224,7 @@ export function LiveSummary({
         )}
 
         {/* Estadísticas generales */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="bg-muted/50 p-3 sm:p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-1 sm:mb-2">
               <Users className="h-4 w-4 text-blue-500 flex-shrink-0" />
@@ -238,12 +238,12 @@ export function LiveSummary({
             <div className="flex items-center gap-2 mb-1 sm:mb-2">
               <Clock className="h-4 w-4 text-green-500 flex-shrink-0" />
               <div className="text-xs sm:text-sm text-muted-foreground">
-                Total Horas Trabajadas
+                Horas Netas
               </div>
             </div>
             <div className="text-xl sm:text-2xl font-bold">
               {data.employees
-                .reduce((sum, emp) => sum + parseFloat(emp.total_hours), 0)
+                .reduce((sum, emp) => sum + parseFloat(emp.net_hours || emp.total_hours), 0)
                 .toFixed(1)}
             </div>
           </div>
@@ -257,6 +257,19 @@ export function LiveSummary({
             <div className="text-xl sm:text-2xl font-bold">
               {data.employees
                 .reduce((sum, emp) => sum + parseFloat(emp.night_hours), 0)
+                .toFixed(1)}
+            </div>
+          </div>
+          <div className="bg-orange-50 dark:bg-orange-950 p-3 sm:p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <Timer className="h-4 w-4 text-orange-500 flex-shrink-0" />
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                Horas Extra
+              </div>
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400">
+              {data.employees
+                .reduce((sum, emp) => sum + parseFloat(emp.extra_hours), 0)
                 .toFixed(1)}
             </div>
           </div>
@@ -278,10 +291,9 @@ export function LiveSummary({
                   <TableRow>
                     <TableHead className="whitespace-nowrap">Empleado</TableHead>
                     <TableHead className="text-right hidden sm:table-cell">Días</TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">Horas Reg.</TableHead>
                     <TableHead className="text-right hidden lg:table-cell">Horas Noct.</TableHead>
                     <TableHead className="text-right hidden lg:table-cell">Horas Extra</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Hrs Netas</TableHead>
                     <TableHead className="text-right">Salario</TableHead>
                     <TableHead className="text-center hidden md:table-cell">Estado</TableHead>
                   </TableRow>
@@ -302,12 +314,6 @@ export function LiveSummary({
                       </TableCell>
                       <TableCell className="text-right text-xs sm:text-sm hidden lg:table-cell">
                         <div className="flex items-center justify-end gap-1">
-                          <Clock className="h-3 w-3 text-gray-500" />
-                          {parseFloat(employee.regular_hours).toFixed(1)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right text-xs sm:text-sm hidden lg:table-cell">
-                        <div className="flex items-center justify-end gap-1">
                           <Moon className="h-3 w-3 text-indigo-500" />
                           {parseFloat(employee.night_hours).toFixed(1)}
                         </div>
@@ -320,7 +326,7 @@ export function LiveSummary({
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge variant="outline" className="bg-blue-50 text-xs whitespace-nowrap">
-                          {parseFloat(employee.total_hours).toFixed(1)} hrs
+                          {parseFloat(employee.net_hours || employee.total_hours).toFixed(1)} hrs
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium text-xs sm:text-sm whitespace-nowrap">

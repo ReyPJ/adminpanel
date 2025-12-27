@@ -65,6 +65,8 @@ export interface LiveSummaryEmployee {
   regular_hours: string;
   night_hours: string;
   extra_hours: string;
+  lunch_deduction_hours: string;
+  net_hours: string;
   estimated_salary: string;
   days_worked: number;
   pending_checkout: number;
