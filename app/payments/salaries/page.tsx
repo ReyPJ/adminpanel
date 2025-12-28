@@ -143,6 +143,7 @@ const SalariesPage: React.FC = () => {
               ) : (
                 <SalaryRecordsList
                   periodId={selectedPeriod.id}
+                  periodName={selectedPeriod.description}
                   refresh={calculationComplete}
                 />
               )}
