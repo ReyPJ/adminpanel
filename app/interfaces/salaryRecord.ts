@@ -6,6 +6,7 @@ export interface salaryRecordInterface {
   regular_hours?: number;
   night_hours?: number;
   extra_hours: number;
+  net_hours?: number; // total_hours - lunch_deduction_hours
   night_shift_factor_applied?: string; // Decimal
   gross_salary?: string; // Decimal
   lunch_deduction_hours?: number;

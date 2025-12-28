@@ -100,62 +100,87 @@ const PaymentRecordsPage: React.FC = () => {
   const exportToExcel = () => {
     if (records.length === 0) return;
 
-    // Preparar datos para el Excel
-    const excelData = records.map((record) => ({
-      "Empleado": record.employee_name,
-      "Horas Totales": Number(record.total_hours).toFixed(2),
-      "Horas Regulares": Number(record.regular_hours || 0).toFixed(2),
-      "Horas Nocturnas": Number(record.night_hours || 0).toFixed(2),
-      "Horas Extra": Number(record.extra_hours || 0).toFixed(2),
-      "Salario Bruto": record.gross_salary ? `₡${parseFloat(record.gross_salary).toLocaleString()}` : "N/A",
-      "Deducciones": record.other_deductions ? `₡${parseFloat(record.other_deductions).toLocaleString()}` : "₡0",
-      "Desc. Deducciones": record.other_deductions_description || "-",
-      "Salario a Pagar": `₡${parseFloat(record.salary_to_pay).toLocaleString()}`,
-      "Fecha de Pago": new Date(record.paid_at).toLocaleDateString("es-CR"),
-    }));
+    const displayName = selectedPeriod?.description || records[0]?.period_name || `Periodo`;
+    const fechaGeneracion = new Date().toLocaleDateString("es-CR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
     // Calcular totales
     const totalSalary = records.reduce((sum, r) => sum + parseFloat(r.salary_to_pay), 0);
-    const totalHours = records.reduce((sum, r) => sum + Number(r.total_hours), 0);
+    const totalNetHours = records.reduce((sum, r) => sum + Number(r.net_hours ?? r.total_hours), 0);
     const totalExtraHours = records.reduce((sum, r) => sum + Number(r.extra_hours || 0), 0);
+    const totalNightHours = records.reduce((sum, r) => sum + Number(r.night_hours || 0), 0);
 
-    // Agregar fila de totales
-    excelData.push({
-      "Empleado": "TOTALES",
-      "Horas Totales": totalHours.toFixed(2),
-      "Horas Regulares": "",
-      "Horas Nocturnas": "",
-      "Horas Extra": totalExtraHours.toFixed(2),
-      "Salario Bruto": "",
-      "Deducciones": "",
-      "Desc. Deducciones": "",
-      "Salario a Pagar": `₡${totalSalary.toLocaleString()}`,
-      "Fecha de Pago": "",
+    // Crear datos con encabezado profesional
+    const worksheetData: (string | number)[][] = [
+      // Encabezado
+      ["RESUMEN DE PAGOS"],
+      [`Período: ${displayName}`],
+      [`Fecha de generación: ${fechaGeneracion}`],
+      [`Total empleados: ${records.length}`],
+      [], // Fila vacía
+      // Encabezados de columnas
+      ["Empleado", "Horas Netas", "Horas Extra", "Horas Noct.", "Ded. Almuerzo", "Salario Bruto", "Otras Ded.", "Salario a Pagar"],
+    ];
+
+    // Agregar datos de empleados
+    records.forEach((record) => {
+      worksheetData.push([
+        record.employee_name,
+        Number(record.net_hours ?? record.total_hours).toFixed(2),
+        Number(record.extra_hours || 0).toFixed(2),
+        Number(record.night_hours || 0).toFixed(2),
+        Number(record.lunch_deduction_hours || 0).toFixed(2),
+        record.gross_salary ? `₡${parseFloat(record.gross_salary).toLocaleString()}` : "N/A",
+        record.other_deductions ? `₡${parseFloat(record.other_deductions).toLocaleString()}` : "₡0",
+        `₡${parseFloat(record.salary_to_pay).toLocaleString()}`,
+      ]);
     });
 
-    // Crear libro de Excel
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
+    // Fila vacía antes de totales
+    worksheetData.push([]);
+
+    // Fila de totales
+    worksheetData.push([
+      "TOTALES",
+      totalNetHours.toFixed(2),
+      totalExtraHours.toFixed(2),
+      totalNightHours.toFixed(2),
+      "",
+      "",
+      "",
+      `₡${totalSalary.toLocaleString()}`,
+    ]);
+
+    // Crear worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+    // Merge cells para el título
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Título
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // Período
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // Fecha
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } }, // Total empleados
+    ];
 
     // Ajustar ancho de columnas
-    const colWidths = [
-      { wch: 25 }, // Empleado
-      { wch: 12 }, // Horas Totales
-      { wch: 14 }, // Horas Regulares
-      { wch: 14 }, // Horas Nocturnas
+    worksheet["!cols"] = [
+      { wch: 28 }, // Empleado
+      { wch: 12 }, // Horas Netas
       { wch: 12 }, // Horas Extra
+      { wch: 12 }, // Horas Noct.
+      { wch: 13 }, // Ded. Almuerzo
       { wch: 15 }, // Salario Bruto
-      { wch: 12 }, // Deducciones
-      { wch: 20 }, // Desc. Deducciones
-      { wch: 15 }, // Salario a Pagar
-      { wch: 14 }, // Fecha de Pago
+      { wch: 12 }, // Otras Ded.
+      { wch: 17 }, // Salario a Pagar
     ];
-    worksheet["!cols"] = colWidths;
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Salarios");
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Resumen Pagos");
 
     // Generar nombre del archivo
-    const displayName = selectedPeriod?.description || records[0]?.period_name || `Periodo`;
     const fileName = `Resumen_Pagos_${displayName.replace(/\s+/g, "_")}.xlsx`;
 
     // Descargar archivo
