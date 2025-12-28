@@ -32,7 +32,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertTriangle, DollarSign, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, AlertTriangle, DollarSign, Users, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
 const PaymentRecordsPage: React.FC = () => {
   const segments = usePathname().split("/").filter(Boolean);
@@ -94,6 +96,72 @@ const PaymentRecordsPage: React.FC = () => {
     return records.filter((record) => record.employee === employeeId);
   };
 
+  // Función para exportar a Excel
+  const exportToExcel = () => {
+    if (records.length === 0) return;
+
+    // Preparar datos para el Excel
+    const excelData = records.map((record) => ({
+      "Empleado": record.employee_name,
+      "Horas Totales": Number(record.total_hours).toFixed(2),
+      "Horas Regulares": Number(record.regular_hours || 0).toFixed(2),
+      "Horas Nocturnas": Number(record.night_hours || 0).toFixed(2),
+      "Horas Extra": Number(record.extra_hours || 0).toFixed(2),
+      "Salario Bruto": record.gross_salary ? `₡${parseFloat(record.gross_salary).toLocaleString()}` : "N/A",
+      "Deducciones": record.other_deductions ? `₡${parseFloat(record.other_deductions).toLocaleString()}` : "₡0",
+      "Desc. Deducciones": record.other_deductions_description || "-",
+      "Salario a Pagar": `₡${parseFloat(record.salary_to_pay).toLocaleString()}`,
+      "Fecha de Pago": new Date(record.paid_at).toLocaleDateString("es-CR"),
+    }));
+
+    // Calcular totales
+    const totalSalary = records.reduce((sum, r) => sum + parseFloat(r.salary_to_pay), 0);
+    const totalHours = records.reduce((sum, r) => sum + Number(r.total_hours), 0);
+    const totalExtraHours = records.reduce((sum, r) => sum + Number(r.extra_hours || 0), 0);
+
+    // Agregar fila de totales
+    excelData.push({
+      "Empleado": "TOTALES",
+      "Horas Totales": totalHours.toFixed(2),
+      "Horas Regulares": "",
+      "Horas Nocturnas": "",
+      "Horas Extra": totalExtraHours.toFixed(2),
+      "Salario Bruto": "",
+      "Deducciones": "",
+      "Desc. Deducciones": "",
+      "Salario a Pagar": `₡${totalSalary.toLocaleString()}`,
+      "Fecha de Pago": "",
+    });
+
+    // Crear libro de Excel
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+
+    // Ajustar ancho de columnas
+    const colWidths = [
+      { wch: 25 }, // Empleado
+      { wch: 12 }, // Horas Totales
+      { wch: 14 }, // Horas Regulares
+      { wch: 14 }, // Horas Nocturnas
+      { wch: 12 }, // Horas Extra
+      { wch: 15 }, // Salario Bruto
+      { wch: 12 }, // Deducciones
+      { wch: 20 }, // Desc. Deducciones
+      { wch: 15 }, // Salario a Pagar
+      { wch: 14 }, // Fecha de Pago
+    ];
+    worksheet["!cols"] = colWidths;
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Salarios");
+
+    // Generar nombre del archivo
+    const displayName = selectedPeriod?.description || records[0]?.period_name || `Periodo`;
+    const fileName = `Resumen_Pagos_${displayName.replace(/\s+/g, "_")}.xlsx`;
+
+    // Descargar archivo
+    XLSX.writeFile(workbook, fileName);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -144,16 +212,31 @@ const PaymentRecordsPage: React.FC = () => {
             {/* Resumen de pagos del período */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Resumen de Pagos del Período
-                </CardTitle>
-                <CardDescription>
-                  {selectedPeriod.description} | Total a pagar:
-                  <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-lg">
-                    {formatCurrency(getTotalPayment().toString())}
-                  </Badge>
-                </CardDescription>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Resumen de Pagos del Período
+                    </CardTitle>
+                    <CardDescription>
+                      {selectedPeriod.description} | Total a pagar:
+                      <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-lg">
+                        {formatCurrency(getTotalPayment().toString())}
+                      </Badge>
+                    </CardDescription>
+                  </div>
+                  {records.length > 0 && (
+                    <Button
+                      onClick={exportToExcel}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Descargar Excel
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
