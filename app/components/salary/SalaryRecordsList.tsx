@@ -45,34 +45,30 @@ export function SalaryRecordsList({
     // Preparar datos para el Excel
     const excelData = records.map((record) => ({
       "Empleado": record.employee_name,
-      "Horas Totales": Number(record.total_hours).toFixed(2),
-      "Horas Regulares": Number(record.regular_hours || 0).toFixed(2),
-      "Horas Nocturnas": Number(record.night_hours || 0).toFixed(2),
+      "Horas Netas": Number(record.net_hours ?? record.total_hours).toFixed(2),
       "Horas Extra": Number(record.extra_hours || 0).toFixed(2),
+      "Horas Nocturnas": Number(record.night_hours || 0).toFixed(2),
+      "Ded. Almuerzo": Number(record.lunch_deduction_hours || 0).toFixed(2),
       "Salario Bruto": record.gross_salary ? `₡${parseFloat(record.gross_salary).toLocaleString()}` : "N/A",
-      "Deducciones": record.other_deductions ? `₡${parseFloat(record.other_deductions).toLocaleString()}` : "₡0",
-      "Desc. Deducciones": record.other_deductions_description || "-",
+      "Otras Ded.": record.other_deductions ? `₡${parseFloat(record.other_deductions).toLocaleString()}` : "₡0",
       "Salario a Pagar": `₡${parseFloat(record.salary_to_pay).toLocaleString()}`,
-      "Fecha de Pago": new Date(record.paid_at).toLocaleDateString("es-CR"),
     }));
 
     // Calcular totales
     const totalSalary = records.reduce((sum, r) => sum + parseFloat(r.salary_to_pay), 0);
-    const totalHours = records.reduce((sum, r) => sum + Number(r.total_hours), 0);
+    const totalNetHours = records.reduce((sum, r) => sum + Number(r.net_hours ?? r.total_hours), 0);
     const totalExtraHours = records.reduce((sum, r) => sum + Number(r.extra_hours || 0), 0);
 
     // Agregar fila de totales
     excelData.push({
       "Empleado": "TOTALES",
-      "Horas Totales": totalHours.toFixed(2),
-      "Horas Regulares": "",
-      "Horas Nocturnas": "",
+      "Horas Netas": totalNetHours.toFixed(2),
       "Horas Extra": totalExtraHours.toFixed(2),
+      "Horas Nocturnas": "",
+      "Ded. Almuerzo": "",
       "Salario Bruto": "",
-      "Deducciones": "",
-      "Desc. Deducciones": "",
+      "Otras Ded.": "",
       "Salario a Pagar": `₡${totalSalary.toLocaleString()}`,
-      "Fecha de Pago": "",
     });
 
     // Crear libro de Excel
@@ -82,15 +78,13 @@ export function SalaryRecordsList({
     // Ajustar ancho de columnas
     const colWidths = [
       { wch: 25 }, // Empleado
-      { wch: 12 }, // Horas Totales
-      { wch: 14 }, // Horas Regulares
-      { wch: 14 }, // Horas Nocturnas
+      { wch: 12 }, // Horas Netas
       { wch: 12 }, // Horas Extra
+      { wch: 14 }, // Horas Nocturnas
+      { wch: 13 }, // Ded. Almuerzo
       { wch: 15 }, // Salario Bruto
-      { wch: 12 }, // Deducciones
-      { wch: 20 }, // Desc. Deducciones
-      { wch: 15 }, // Salario a Pagar
-      { wch: 14 }, // Fecha de Pago
+      { wch: 12 }, // Otras Ded.
+      { wch: 16 }, // Salario a Pagar
     ];
     worksheet["!cols"] = colWidths;
 
