@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Loader2,
   AlertTriangle,
@@ -39,9 +40,11 @@ import {
   Calendar,
   Moon,
   Timer,
+  Download,
 } from "lucide-react";
 import { attendanceInterface } from "@/app/interfaces/attendanceDetailsInterface";
 import { EmployeeInterface } from "@/app/interfaces/employeInterfa";
+import * as XLSX from "xlsx";
 
 // Interfaz para estadísticas agregadas por empleado
 interface EmployeeStats {
@@ -204,6 +207,87 @@ const AttendanceHistoryPage: React.FC = () => {
 
   const employeeStats = getEmployeeStats();
 
+  // Función para exportar a Excel
+  const exportToExcel = () => {
+    if (attendanceData.length === 0 || !selectedEmployee) return;
+
+    const employeeName = attendanceData[0]?.employee_name || "Empleado";
+    const displayName = selectedPeriod?.description || "Periodo";
+    const fechaGeneracion = new Date().toLocaleDateString("es-CR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    // Calcular totales
+    const stats = employeeStats.find(s => s.id === selectedEmployee);
+    const totalDays = stats?.totalDays || 0;
+    const totalRegularHours = stats?.totalRegularHours || 0;
+    const totalNightHours = stats?.totalNightHours || 0;
+    const totalExtraHours = stats?.totalExtraHours || 0;
+    const totalWorkHours = stats?.totalWorkHours || 0;
+
+    // Crear datos con encabezado profesional
+    const worksheetData: (string | number)[][] = [
+      ["HISTORIAL DE ASISTENCIA"],
+      [`Empleado: ${employeeName}`],
+      [`Período: ${displayName}`],
+      [`Fecha de generación: ${fechaGeneracion}`],
+      [],
+      // Resumen
+      ["RESUMEN"],
+      ["Días trabajados", totalDays.toString()],
+      ["Horas trabajadas", totalWorkHours.toFixed(2)],
+      ["Horas nocturnas", totalNightHours.toFixed(2)],
+      ["Horas extra", totalExtraHours.toFixed(2)],
+      [],
+      // Detalle diario
+      ["DETALLE DIARIO"],
+      ["Fecha", "Entrada", "Salida", "Horas Reg.", "Horas Noct.", "Ded. Almuerzo"],
+    ];
+
+    // Agregar datos de cada día
+    attendanceData.forEach((record) => {
+      worksheetData.push([
+        record.formatted_date,
+        record.time_in?.slice(0, 5) || "-",
+        record.time_out?.slice(0, 5) || "-",
+        parseFloat(record.regular_hours).toFixed(2),
+        parseFloat(record.night_hours).toFixed(2),
+        parseFloat(record.lunch_deduction).toFixed(2),
+      ]);
+    });
+
+    // Crear worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+    // Merge cells para encabezados
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } },
+      { s: { r: 5, c: 0 }, e: { r: 5, c: 5 } },
+      { s: { r: 11, c: 0 }, e: { r: 11, c: 5 } },
+    ];
+
+    // Ajustar ancho de columnas
+    worksheet["!cols"] = [
+      { wch: 18 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 14 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
+
+    const fileName = `Asistencia_${employeeName.replace(/\s+/g, "_")}_${displayName.replace(/\s+/g, "_")}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -351,15 +435,28 @@ const AttendanceHistoryPage: React.FC = () => {
                                           ? `Detalle de asistencia diaria - ${stat.name}`
                                           : `Sin datos de asistencia - ${stat.name}`}
                                       </h4>
-                                      <Badge
-                                        variant="outline"
-                                        className="cursor-pointer bg-red-50 text-red-700 hover:bg-red-100 text-xs"
-                                        onClick={() =>
-                                          handleEmployeeClick(stat.id)
-                                        }
-                                      >
-                                        ✕ Cerrar
-                                      </Badge>
+                                      <div className="flex items-center gap-2">
+                                        {attendanceData.length > 0 && (
+                                          <Button
+                                            onClick={exportToExcel}
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex items-center gap-1 text-xs"
+                                          >
+                                            <Download className="h-3 w-3" />
+                                            Excel
+                                          </Button>
+                                        )}
+                                        <Badge
+                                          variant="outline"
+                                          className="cursor-pointer bg-red-50 text-red-700 hover:bg-red-100 text-xs"
+                                          onClick={() =>
+                                            handleEmployeeClick(stat.id)
+                                          }
+                                        >
+                                          ✕ Cerrar
+                                        </Badge>
+                                      </div>
                                     </div>
 
                                     {attendanceData.length === 0 ? (
