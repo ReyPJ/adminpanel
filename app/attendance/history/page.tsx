@@ -287,86 +287,148 @@ const AttendanceHistoryPage: React.FC = () => {
     XLSX.writeFile(workbook, fileName);
   };
 
+  // Estado para controlar la carga del resumen
+  const [loadingSummary, setLoadingSummary] = React.useState(false);
+
   // Función para exportar resumen completo a Excel
-  const exportSummaryToExcel = () => {
-    if (employeeStats.length === 0) return;
+  const exportSummaryToExcel = async () => {
+    if (employees.length === 0 || !selectedPeriod) return;
 
-    const displayName = selectedPeriod?.description || "Periodo";
-    const fechaGeneracion = new Date().toLocaleDateString("es-CR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    setLoadingSummary(true);
 
-    // Calcular totales generales
-    const totalDays = employeeStats.reduce((sum, s) => sum + s.totalDays, 0);
-    const totalWorkHours = employeeStats.reduce((sum, s) => sum + s.totalWorkHours, 0);
-    const totalNightHours = employeeStats.reduce((sum, s) => sum + s.totalNightHours, 0);
-    const totalExtraHours = employeeStats.reduce((sum, s) => sum + s.totalExtraHours, 0);
-    const totalLunchDeduction = employeeStats.reduce((sum, s) => sum + s.totalLunchDeduction, 0);
+    try {
+      // Cargar datos de asistencia de TODOS los empleados
+      const allAttendanceData: attendanceInterface[] = [];
 
-    // Crear datos con encabezado profesional
-    const worksheetData: (string | number)[][] = [
-      ["RESUMEN DE ASISTENCIA"],
-      [`Período: ${displayName}`],
-      [`Fecha de generación: ${fechaGeneracion}`],
-      [`Total empleados: ${employeeStats.length}`],
-      [],
-      // Encabezados de columnas
-      ["Empleado", "Días Trab.", "Horas Trab.", "Horas Noct.", "Horas Extra", "Ded. Almuerzo"],
-    ];
+      for (const emp of employees) {
+        if (emp.id) {
+          try {
+            const data = await getAttendanceDetails(emp.id, selectedPeriod.id);
+            allAttendanceData.push(...data);
+          } catch {
+            // Si falla para un empleado, continuamos con los demás
+            console.warn(`No se pudieron cargar datos para empleado ${emp.id}`);
+          }
+        }
+      }
 
-    // Agregar datos de cada empleado
-    employeeStats.forEach((stat) => {
+      // Calcular estadísticas por empleado
+      const statsMap = new Map<number, EmployeeStats>();
+
+      allAttendanceData.forEach((record) => {
+        if (!statsMap.has(record.employee)) {
+          statsMap.set(record.employee, {
+            id: record.employee,
+            name: record.employee_name,
+            totalDays: 0,
+            totalRegularHours: 0,
+            totalNightHours: 0,
+            totalExtraHours: 0,
+            totalLunchDeduction: 0,
+            totalWorkHours: 0,
+            details: [],
+          });
+        }
+
+        const stats = statsMap.get(record.employee)!;
+        stats.totalDays += 1;
+        stats.totalRegularHours += parseFloat(record.regular_hours);
+        stats.totalNightHours += parseFloat(record.night_hours);
+        stats.totalExtraHours += parseFloat(record.extra_hours);
+        stats.totalLunchDeduction += parseFloat(record.lunch_deduction);
+        stats.totalWorkHours += parseFloat(record.regular_hours) + parseFloat(record.night_hours);
+      });
+
+      const allStats = Array.from(statsMap.values());
+
+      if (allStats.length === 0) {
+        setLoadingSummary(false);
+        setError("No hay datos de asistencia para exportar en este período");
+        return;
+      }
+
+      const displayName = selectedPeriod.description || "Periodo";
+      const fechaGeneracion = new Date().toLocaleDateString("es-CR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+      // Calcular totales generales
+      const totalDays = allStats.reduce((sum, s) => sum + s.totalDays, 0);
+      const totalWorkHours = allStats.reduce((sum, s) => sum + s.totalWorkHours, 0);
+      const totalNightHours = allStats.reduce((sum, s) => sum + s.totalNightHours, 0);
+      const totalExtraHours = allStats.reduce((sum, s) => sum + s.totalExtraHours, 0);
+      const totalLunchDeduction = allStats.reduce((sum, s) => sum + s.totalLunchDeduction, 0);
+
+      // Crear datos con encabezado profesional
+      const worksheetData: (string | number)[][] = [
+        ["RESUMEN DE ASISTENCIA"],
+        [`Período: ${displayName}`],
+        [`Fecha de generación: ${fechaGeneracion}`],
+        [`Total empleados: ${allStats.length}`],
+        [],
+        // Encabezados de columnas
+        ["Empleado", "Días Trab.", "Horas Trab.", "Horas Noct.", "Horas Extra", "Ded. Almuerzo"],
+      ];
+
+      // Agregar datos de cada empleado
+      allStats.forEach((stat) => {
+        worksheetData.push([
+          stat.name,
+          stat.totalDays,
+          stat.totalWorkHours.toFixed(2),
+          stat.totalNightHours.toFixed(2),
+          stat.totalExtraHours.toFixed(2),
+          stat.totalLunchDeduction.toFixed(2),
+        ]);
+      });
+
+      // Fila vacía antes de totales
+      worksheetData.push([]);
+
+      // Fila de totales
       worksheetData.push([
-        stat.name,
-        stat.totalDays,
-        stat.totalWorkHours.toFixed(2),
-        stat.totalNightHours.toFixed(2),
-        stat.totalExtraHours.toFixed(2),
-        stat.totalLunchDeduction.toFixed(2),
+        "TOTALES",
+        totalDays,
+        totalWorkHours.toFixed(2),
+        totalNightHours.toFixed(2),
+        totalExtraHours.toFixed(2),
+        totalLunchDeduction.toFixed(2),
       ]);
-    });
 
-    // Fila vacía antes de totales
-    worksheetData.push([]);
+      // Crear worksheet
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
-    // Fila de totales
-    worksheetData.push([
-      "TOTALES",
-      totalDays,
-      totalWorkHours.toFixed(2),
-      totalNightHours.toFixed(2),
-      totalExtraHours.toFixed(2),
-      totalLunchDeduction.toFixed(2),
-    ]);
+      // Merge cells para encabezados
+      worksheet["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } },
+      ];
 
-    // Crear worksheet
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+      // Ajustar ancho de columnas
+      worksheet["!cols"] = [
+        { wch: 28 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 14 },
+      ];
 
-    // Merge cells para encabezados
-    worksheet["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
-      { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } },
-    ];
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Resumen Asistencia");
 
-    // Ajustar ancho de columnas
-    worksheet["!cols"] = [
-      { wch: 28 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 14 },
-    ];
-
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Resumen Asistencia");
-
-    const fileName = `Resumen_Asistencia_${displayName.replace(/\s+/g, "_")}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
+      const fileName = `Resumen_Asistencia_${displayName.replace(/\s+/g, "_")}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+    } catch (err) {
+      console.error("Error al exportar resumen:", err);
+      setError("Error al generar el resumen de asistencia");
+    } finally {
+      setLoadingSummary(false);
+    }
   };
 
   return (
@@ -430,15 +492,25 @@ const AttendanceHistoryPage: React.FC = () => {
                       {employeeStats.length}
                     </CardDescription>
                   </div>
-                  {employeeStats.length > 0 && (
+                  {employees.length > 0 && (
                     <Button
                       onClick={exportSummaryToExcel}
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-2"
+                      disabled={loadingSummary}
                     >
-                      <Download className="h-4 w-4" />
-                      Descargar Resumen
+                      {loadingSummary ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Cargando...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4" />
+                          Descargar Resumen
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
