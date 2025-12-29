@@ -290,7 +290,7 @@ const AttendanceHistoryPage: React.FC = () => {
   // Estado para controlar la carga del resumen
   const [loadingSummary, setLoadingSummary] = React.useState(false);
 
-  // Función para exportar resumen completo a Excel
+  // Función para exportar resumen completo a Excel con hojas por empleado
   const exportSummaryToExcel = async () => {
     if (employees.length === 0 || !selectedPeriod) return;
 
@@ -298,54 +298,53 @@ const AttendanceHistoryPage: React.FC = () => {
 
     try {
       // Cargar datos de asistencia de TODOS los empleados
-      const allAttendanceData: attendanceInterface[] = [];
+      const employeeDataMap = new Map<number, attendanceInterface[]>();
 
       for (const emp of employees) {
         if (emp.id) {
           try {
             const data = await getAttendanceDetails(emp.id, selectedPeriod.id);
-            allAttendanceData.push(...data);
+            if (data.length > 0) {
+              employeeDataMap.set(emp.id, data);
+            }
           } catch {
-            // Si falla para un empleado, continuamos con los demás
             console.warn(`No se pudieron cargar datos para empleado ${emp.id}`);
           }
         }
       }
 
-      // Calcular estadísticas por empleado
-      const statsMap = new Map<number, EmployeeStats>();
-
-      allAttendanceData.forEach((record) => {
-        if (!statsMap.has(record.employee)) {
-          statsMap.set(record.employee, {
-            id: record.employee,
-            name: record.employee_name,
-            totalDays: 0,
-            totalRegularHours: 0,
-            totalNightHours: 0,
-            totalExtraHours: 0,
-            totalLunchDeduction: 0,
-            totalWorkHours: 0,
-            details: [],
-          });
-        }
-
-        const stats = statsMap.get(record.employee)!;
-        stats.totalDays += 1;
-        stats.totalRegularHours += parseFloat(record.regular_hours);
-        stats.totalNightHours += parseFloat(record.night_hours);
-        stats.totalExtraHours += parseFloat(record.extra_hours);
-        stats.totalLunchDeduction += parseFloat(record.lunch_deduction);
-        stats.totalWorkHours += parseFloat(record.regular_hours) + parseFloat(record.night_hours);
-      });
-
-      const allStats = Array.from(statsMap.values());
-
-      if (allStats.length === 0) {
+      if (employeeDataMap.size === 0) {
         setLoadingSummary(false);
         setError("No hay datos de asistencia para exportar en este período");
         return;
       }
+
+      // Calcular estadísticas por empleado
+      const allStats: EmployeeStats[] = [];
+
+      employeeDataMap.forEach((records, employeeId) => {
+        const stat: EmployeeStats = {
+          id: employeeId,
+          name: records[0]?.employee_name || "Empleado",
+          totalDays: records.length,
+          totalRegularHours: 0,
+          totalNightHours: 0,
+          totalExtraHours: 0,
+          totalLunchDeduction: 0,
+          totalWorkHours: 0,
+          details: records,
+        };
+
+        records.forEach((record) => {
+          stat.totalRegularHours += parseFloat(record.regular_hours);
+          stat.totalNightHours += parseFloat(record.night_hours);
+          stat.totalExtraHours += parseFloat(record.extra_hours);
+          stat.totalLunchDeduction += parseFloat(record.lunch_deduction);
+          stat.totalWorkHours += parseFloat(record.regular_hours) + parseFloat(record.night_hours);
+        });
+
+        allStats.push(stat);
+      });
 
       const displayName = selectedPeriod.description || "Periodo";
       const fechaGeneracion = new Date().toLocaleDateString("es-CR", {
@@ -361,20 +360,21 @@ const AttendanceHistoryPage: React.FC = () => {
       const totalExtraHours = allStats.reduce((sum, s) => sum + s.totalExtraHours, 0);
       const totalLunchDeduction = allStats.reduce((sum, s) => sum + s.totalLunchDeduction, 0);
 
-      // Crear datos con encabezado profesional
-      const worksheetData: (string | number)[][] = [
+      // Crear workbook
+      const workbook = XLSX.utils.book_new();
+
+      // ========== HOJA 1: RESUMEN GENERAL ==========
+      const summaryData: (string | number)[][] = [
         ["RESUMEN DE ASISTENCIA"],
         [`Período: ${displayName}`],
         [`Fecha de generación: ${fechaGeneracion}`],
         [`Total empleados: ${allStats.length}`],
         [],
-        // Encabezados de columnas
         ["Empleado", "Días Trab.", "Horas Trab.", "Horas Noct.", "Horas Extra", "Ded. Almuerzo"],
       ];
 
-      // Agregar datos de cada empleado
       allStats.forEach((stat) => {
-        worksheetData.push([
+        summaryData.push([
           stat.name,
           stat.totalDays,
           stat.totalWorkHours.toFixed(2),
@@ -384,11 +384,8 @@ const AttendanceHistoryPage: React.FC = () => {
         ]);
       });
 
-      // Fila vacía antes de totales
-      worksheetData.push([]);
-
-      // Fila de totales
-      worksheetData.push([
+      summaryData.push([]);
+      summaryData.push([
         "TOTALES",
         totalDays,
         totalWorkHours.toFixed(2),
@@ -397,31 +394,73 @@ const AttendanceHistoryPage: React.FC = () => {
         totalLunchDeduction.toFixed(2),
       ]);
 
-      // Crear worksheet
-      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-
-      // Merge cells para encabezados
-      worksheet["!merges"] = [
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      summarySheet["!merges"] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
         { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
         { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
         { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } },
       ];
-
-      // Ajustar ancho de columnas
-      worksheet["!cols"] = [
-        { wch: 28 },
-        { wch: 12 },
-        { wch: 12 },
-        { wch: 12 },
-        { wch: 12 },
-        { wch: 14 },
+      summarySheet["!cols"] = [
+        { wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
       ];
 
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Resumen Asistencia");
+      XLSX.utils.book_append_sheet(workbook, summarySheet, "Resumen");
 
-      const fileName = `Resumen_Asistencia_${displayName.replace(/\s+/g, "_")}.xlsx`;
+      // ========== HOJAS POR EMPLEADO ==========
+      allStats.forEach((stat) => {
+        const employeeData: (string | number)[][] = [
+          ["DETALLE DE ASISTENCIA"],
+          [`Empleado: ${stat.name}`],
+          [`Período: ${displayName}`],
+          [`Fecha de generación: ${fechaGeneracion}`],
+          [],
+          ["RESUMEN"],
+          ["Días trabajados", stat.totalDays],
+          ["Horas trabajadas", stat.totalWorkHours.toFixed(2)],
+          ["Horas nocturnas", stat.totalNightHours.toFixed(2)],
+          ["Horas extra", stat.totalExtraHours.toFixed(2)],
+          ["Ded. almuerzo", stat.totalLunchDeduction.toFixed(2)],
+          [],
+          ["DETALLE DIARIO"],
+          ["Fecha", "Entrada", "Salida", "Horas Reg.", "Horas Noct.", "Horas Extra", "Ded. Almuerzo"],
+        ];
+
+        // Agregar detalle de cada día
+        stat.details.forEach((record) => {
+          employeeData.push([
+            record.formatted_date,
+            record.time_in?.slice(0, 5) || "-",
+            record.time_out?.slice(0, 5) || "-",
+            parseFloat(record.regular_hours).toFixed(2),
+            parseFloat(record.night_hours).toFixed(2),
+            parseFloat(record.extra_hours).toFixed(2),
+            parseFloat(record.lunch_deduction).toFixed(2),
+          ]);
+        });
+
+        const employeeSheet = XLSX.utils.aoa_to_sheet(employeeData);
+        employeeSheet["!merges"] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+          { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+          { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
+          { s: { r: 3, c: 0 }, e: { r: 3, c: 6 } },
+          { s: { r: 5, c: 0 }, e: { r: 5, c: 6 } },
+          { s: { r: 12, c: 0 }, e: { r: 12, c: 6 } },
+        ];
+        employeeSheet["!cols"] = [
+          { wch: 18 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+        ];
+
+        // Nombre de la hoja (máximo 31 caracteres, sin caracteres especiales)
+        const sheetName = stat.name
+          .replace(/[\\/*?:\[\]]/g, "")
+          .substring(0, 31);
+
+        XLSX.utils.book_append_sheet(workbook, employeeSheet, sheetName);
+      });
+
+      const fileName = `Asistencia_Completa_${displayName.replace(/\s+/g, "_")}.xlsx`;
       XLSX.writeFile(workbook, fileName);
     } catch (err) {
       console.error("Error al exportar resumen:", err);
