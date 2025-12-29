@@ -222,7 +222,6 @@ const AttendanceHistoryPage: React.FC = () => {
     // Calcular totales
     const stats = employeeStats.find(s => s.id === selectedEmployee);
     const totalDays = stats?.totalDays || 0;
-    const totalRegularHours = stats?.totalRegularHours || 0;
     const totalNightHours = stats?.totalNightHours || 0;
     const totalExtraHours = stats?.totalExtraHours || 0;
     const totalWorkHours = stats?.totalWorkHours || 0;
