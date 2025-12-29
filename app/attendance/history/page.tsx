@@ -287,6 +287,88 @@ const AttendanceHistoryPage: React.FC = () => {
     XLSX.writeFile(workbook, fileName);
   };
 
+  // Función para exportar resumen completo a Excel
+  const exportSummaryToExcel = () => {
+    if (employeeStats.length === 0) return;
+
+    const displayName = selectedPeriod?.description || "Periodo";
+    const fechaGeneracion = new Date().toLocaleDateString("es-CR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    // Calcular totales generales
+    const totalDays = employeeStats.reduce((sum, s) => sum + s.totalDays, 0);
+    const totalWorkHours = employeeStats.reduce((sum, s) => sum + s.totalWorkHours, 0);
+    const totalNightHours = employeeStats.reduce((sum, s) => sum + s.totalNightHours, 0);
+    const totalExtraHours = employeeStats.reduce((sum, s) => sum + s.totalExtraHours, 0);
+    const totalLunchDeduction = employeeStats.reduce((sum, s) => sum + s.totalLunchDeduction, 0);
+
+    // Crear datos con encabezado profesional
+    const worksheetData: (string | number)[][] = [
+      ["RESUMEN DE ASISTENCIA"],
+      [`Período: ${displayName}`],
+      [`Fecha de generación: ${fechaGeneracion}`],
+      [`Total empleados: ${employeeStats.length}`],
+      [],
+      // Encabezados de columnas
+      ["Empleado", "Días Trab.", "Horas Trab.", "Horas Noct.", "Horas Extra", "Ded. Almuerzo"],
+    ];
+
+    // Agregar datos de cada empleado
+    employeeStats.forEach((stat) => {
+      worksheetData.push([
+        stat.name,
+        stat.totalDays,
+        stat.totalWorkHours.toFixed(2),
+        stat.totalNightHours.toFixed(2),
+        stat.totalExtraHours.toFixed(2),
+        stat.totalLunchDeduction.toFixed(2),
+      ]);
+    });
+
+    // Fila vacía antes de totales
+    worksheetData.push([]);
+
+    // Fila de totales
+    worksheetData.push([
+      "TOTALES",
+      totalDays,
+      totalWorkHours.toFixed(2),
+      totalNightHours.toFixed(2),
+      totalExtraHours.toFixed(2),
+      totalLunchDeduction.toFixed(2),
+    ]);
+
+    // Crear worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+    // Merge cells para encabezados
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } },
+    ];
+
+    // Ajustar ancho de columnas
+    worksheet["!cols"] = [
+      { wch: 28 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 14 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Resumen Asistencia");
+
+    const fileName = `Resumen_Asistencia_${displayName.replace(/\s+/g, "_")}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -337,14 +419,29 @@ const AttendanceHistoryPage: React.FC = () => {
             {/* Resumen de asistencia del período */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Resumen de Asistencia
-                </CardTitle>
-                <CardDescription>
-                  {selectedPeriod.description} | Total empleados:{" "}
-                  {employeeStats.length}
-                </CardDescription>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Resumen de Asistencia
+                    </CardTitle>
+                    <CardDescription>
+                      {selectedPeriod.description} | Total empleados:{" "}
+                      {employeeStats.length}
+                    </CardDescription>
+                  </div>
+                  {employeeStats.length > 0 && (
+                    <Button
+                      onClick={exportSummaryToExcel}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Descargar Resumen
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
